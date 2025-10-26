@@ -34,16 +34,37 @@ export default {
 };
 
 /**
- * Handles GET requests to serve the installer script.
+ * Handles GET requests to serve the installer script or redirect browsers to GitHub.
  * @param {Request} request The incoming request.
- * @returns {Response} A response with the shell script.
+ * @returns {Response} A response with the shell script or a redirect.
  */
 function handleGetRequest(request) {
+  const userAgent = request.headers.get('User-Agent') || '';
+  const isBrowser = /Mozilla|Chrome|Safari|Firefox|Edg/.test(userAgent);
   const url = new URL(request.url);
-  const isChinese = url.hostname === 'zh.fuckit.sh';
+  const isChineseDomain = url.hostname === 'zh.fuckit.sh';
 
-  const script = isChinese ? INSTALLER_SCRIPT_ZH : INSTALLER_SCRIPT;
-  const filename = isChinese ? 'fuckit.sh' : 'fuckit.sh'; // Keep filename consistent
+  // If the request comes from a browser, redirect to the appropriate README.
+  if (isBrowser) {
+    // Prioritize the domain: if user visits zh.fuckit.sh, always show Chinese README.
+    if (isChineseDomain) {
+      return Response.redirect('https://github.com/faithleysath/fuckit.sh', 302);
+    }
+
+    // Otherwise, check browser language for the main domain.
+    const acceptLanguage = request.headers.get('Accept-Language') || '';
+    const isChineseUser = acceptLanguage.toLowerCase().startsWith('zh');
+    
+    const repoUrl = isChineseUser
+      ? 'https://github.com/faithleysath/fuckit.sh'
+      : 'https://github.com/faithleysath/fuckit.sh/blob/main/README.en.md';
+      
+    return Response.redirect(repoUrl, 302);
+  }
+
+  // Otherwise, serve the installer script based on the domain.
+  const script = isChineseDomain ? INSTALLER_SCRIPT_ZH : INSTALLER_SCRIPT;
+  const filename = 'fuckit.sh'; // Keep filename consistent
 
   return new Response(script, {
     headers: {
