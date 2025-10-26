@@ -129,24 +129,16 @@ _uninstall_script() {
 
     if [ "$profile_file" != "unknown_profile" ] && [ -f "$profile_file" ]; then
         if grep -qF "$source_line" "$profile_file"; then
-            echo -e "${C_CYAN}Removing source line from $profile_file...${C_RESET}"
             # Use sed to remove the lines. Create a backup.
             sed -i.bak "\|$source_line|d" "$profile_file"
             sed -i.bak "\|# Added by fuckit.sh installer|d" "$profile_file"
-            echo -e "${C_GREEN}Source line removed.${C_RESET}"
-        else
-            echo -e "${C_YELLOW}Source line not found in $profile_file. Skipping.${C_RESET}"
         fi
     else
         echo -e "${C_YELLOW}Could not find a shell profile file to modify.${C_RESET}"
     fi
 
     if [ -d "$INSTALL_DIR" ]; then
-        echo -e "${C_CYAN}Removing installation directory: $INSTALL_DIR...${C_RESET}"
         rm -rf "$INSTALL_DIR"
-        echo -e "${C_GREEN}Installation directory removed.${C_RESET}"
-    else
-        echo -e "${C_YELLOW}Installation directory not found. Skipping.${C_RESET}"
     fi
 
     echo -e "${C_GREEN}Uninstallation complete.${C_RESET}"
@@ -187,8 +179,6 @@ _fuck_execute_prompt() {
 
     # API_ENDPOINT must be hardcoded here for the logic to be portable
     local api_url="https://fuckit.sh/"
-
-    echo -e "$FCKN ${C_CYAN}thinking...${C_RESET}" >&2
 
     local response
     response=$(curl -s -X POST "$api_url" \
@@ -254,7 +244,7 @@ _installer_detect_profile() {
 
 # Main installation function
 _install_script() {
-    echo -e "${C_BOLD}Alright, let's install this shit to $INSTALL_DIR...${C_RESET}"
+    echo -e "${C_GREEN}Installing fuckit.sh to $INSTALL_DIR...${C_RESET}"
     mkdir -p "$INSTALL_DIR"
     
     # Write the embedded core logic to the main.sh file
@@ -264,8 +254,6 @@ _install_script() {
         echo -e "$FUCK ${C_RED}Can't write to the file. Check your damn permissions.${C_RESET}" >&2
         return 1
     fi
-    
-    echo -e "--- $FUCK ${C_GREEN}It's installed. ---${C_RESET}"
 
     # Add source line to shell profile
     local profile_file
@@ -280,15 +268,14 @@ _install_script() {
     
     local source_line="source $MAIN_SH"
     if ! grep -qF "$source_line" "$profile_file"; then
-        echo -e "${C_CYAN}Adding source line to $profile_file...${C_RESET}"
         echo "" >> "$profile_file"
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo -e "${C_GREEN}Done. Now restart your goddamn shell or run:${C_RESET}"
+        echo -e "${C_GREEN}Installation complete.${C_RESET}"
+        echo -e "${C_CYAN}Please restart your shell or run:${C_RESET}"
         echo -e "  ${C_CYAN}source $profile_file${C_RESET}"
     else
-        echo -e "${C_GREEN}Already installed (source line found in $profile_file).${C_RESET}"
-        echo -e "${C_CYAN}Run 'bash $0' again to update (assuming you saved this as a file).${C_RESET}"
+        echo -e "${C_GREEN}Already installed. To update, run the installer again.${C_RESET}"
     fi
 }
 
@@ -298,7 +285,6 @@ _install_script() {
 # If arguments are passed (e.g., "bash -s ...")
 if [ "$#" -gt 0 ]; then
     # Temporary Mode
-    echo -e "--- $FCKN ${C_CYAN}in temporary (one-shot) mode... ---${C_RESET}"
     # Evaluate the core logic to define functions in this shell
     eval "$CORE_LOGIC"
     # Call the main function directly (alias won't work here)
