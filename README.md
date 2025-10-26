@@ -138,7 +138,7 @@ curl -sS https://fuckit.sh | bash -s "find all files larger than 10MB"
 
 ---
 
-## 开发者指南 (给爱折腾的你)
+## 开发者指南
 
 如果你想自己部署这个项目，或者想对它进行修改，请遵循以下步骤。
 
