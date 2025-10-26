@@ -148,7 +148,8 @@ _uninstall_script() {
 # The main function that contacts the API
 # Takes >0 arguments as the prompt
 _fuck_execute_prompt() {
-    if [ "$1" = "uninstall" ]; then
+    # If the user types *only* "fuck uninstall"
+    if [ "$1" = "uninstall" ] && [ "$#" -eq 1 ]; then
         _uninstall_script
         return 0
     fi
@@ -275,13 +276,15 @@ _install_script() {
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
         echo -e "$FUCK ${C_GREEN}It's installed. Now get to work.${C_RESET}"
-        echo -e "${C_CYAN}Restart your shell, or run ${C_BOLD}source $profile_file${C_CYAN} to start.${C_RESET}"
+        echo -e "${C_YELLOW}Restart your shell, or run ${C_BOLD}source $profile_file${C_YELLOW} to start.${C_RESET}"
         echo -e "\n${C_BOLD}--- HOW TO USE ---${C_RESET}"
-        echo -e "Just type ${C_RED}fuck${C_RESET} followed by what you want to do."
+        echo -e "Just type ${C_RED_BOLD}fuck${C_RESET} followed by what you want to do."
         echo -e "Examples:"
         echo -e "  ${C_CYAN}fuck install git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
         echo -e "  ${C_CYAN}fuck find all files larger than 10MB in the current directory${C_RESET}"
-        echo -e "  ${C_CYAN}fuck uninstall${C_RESET}"
+        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# Uninstalls ${C_RESET}${C_RED}fuck${C_RESET}${C_GREEN} itself${C_RESET}"
+        echo -e "\n${C_YELLOW}Remember to restart your shell to begin!${C_RESET}"
     else
         echo -e "$FUCK ${C_YELLOW}It's already installed, genius. Just updated the script for you.${C_RESET}"
     fi
