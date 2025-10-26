@@ -212,13 +212,17 @@ _fuck_execute_prompt() {
     # Secondary confirmation prompt
     printf "$FCKN ${C_BOLD}${C_YELLOW}execute it? [y/N]${C_RESET} "
     local confirmation
-    read -r confirmation
+    read -r confirmation < /dev/tty
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
         echo -e "$FUCK ${C_RED_BOLD}IT,${C_CYAN} WE DO IT LIVE!${C_RESET}" >&2
-        # Execute the response from the server
-        eval "$response"
-        echo -e "$FUCK ${C_GREEN}It's done. Probably.${C_RESET}"
+        # Execute the response from the server and check its exit code
+        if eval "$response"; then
+            echo -e "$FUCK ${C_GREEN}It's done. Probably.${C_RESET}"
+        else
+            local exit_code=$?
+            echo -e "$FUCK ${C_RED}That shit failed with exit code $exit_code. Not my problem.${C_RESET}" >&2
+        fi
     else
         echo -e "$FUCK ${C_RED}Fine, do it yourself.${C_RESET}" >&2
     fi

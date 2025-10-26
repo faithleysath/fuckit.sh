@@ -229,13 +229,17 @@ _fuck_execute_prompt() {
     # 二次确认
     printf "${C_BOLD}${C_YELLOW}看完了没？干不干？[y/N]${C_RESET} "
     local confirmation
-    read -r confirmation
+    read -r confirmation < /dev/tty
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
         echo -e "${C_RED_BOLD}我操你大爷！${C_RESET}${C_CYAN} 还等啥呢，干他妈的！${C_RESET}" >&2
-        # 执行服务器返回的命令
-        eval "$response"
-        echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
+        # 执行服务器返回的命令并检查退出码
+        if eval "$response"; then
+            echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
+        else
+            local exit_code=$?
+            echo -e "${C_RED_BOLD}操！${C_RED}这破命令执行失败了，退出码是 $exit_code。别他妈看我，自己想办法。${C_RESET}" >&2
+        fi
     else
         echo -e "${C_RED}怂逼！不敢就滚，别浪费老子时间。${C_RESET}" >&2
     fi
