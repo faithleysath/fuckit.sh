@@ -30,7 +30,7 @@ readonly C_CYAN='\033[0;36m'
 readonly C_BOLD='\033[1m'
 
 # --- 操! ---
-readonly FUCK="${C_RED_BOLD}操你妈!${C_RESET}"
+readonly FUCK="${C_RED_BOLD}操!${C_RESET}"
 readonly FCKN="${C_RED}你他妈${C_RESET}"
 
 
