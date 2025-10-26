@@ -202,12 +202,12 @@ _fuck_execute_prompt() {
 
     # --- User Confirmation (as requested) ---
     echo -e "${C_YELLOW}--- The AI mumbled this, hope it's right ---${C_RESET}"
-    # Pipe to 'more' for user review
-    echo -e "${C_CYAN}$response${C_RESET}" | more
-    echo -e "${C_BOLD}------------------------------------------${C_RESET}"
+    # Direct output, no 'more'
+    echo -e "${C_CYAN}$response${C_RESET}"
+    echo -e "${C_YELLOW}------------------------------------------${C_RESET}"
     
     # Secondary confirmation prompt
-    printf "${C_YELLOW}$FCKN execute it? [y/N]${C_RESET} "
+    printf "$FCKN ${C_BOLD}${C_YELLOW}execute it? [y/N]${C_RESET} "
     local confirmation
     read -r confirmation
 
