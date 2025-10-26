@@ -268,7 +268,10 @@ _install_script() {
     
     local source_line="source $MAIN_SH"
     if ! grep -qF "$source_line" "$profile_file"; then
-        echo "" >> "$profile_file"
+        # Ensure the file ends with a newline before we add our lines
+        if [ -n "$(tail -c1 "$profile_file")" ]; then
+            echo "" >> "$profile_file"
+        fi
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
         echo -e "$FUCK ${C_GREEN}It's installed. Now get to work.${C_RESET}"
