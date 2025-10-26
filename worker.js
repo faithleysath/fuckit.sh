@@ -2,8 +2,24 @@
 
 // This is the content of your main.sh installer script.
 // It will be served when a user makes a GET request.
-const INSTALLER_SCRIPT = atob(``);
-const INSTALLER_SCRIPT_ZH = atob(``);
+function b64_to_utf8(str) {
+  try {
+    // This is a more robust way to decode base64 to UTF-8
+    const binaryString = atob(str);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+  } catch (e) {
+    console.error("Failed to decode base64 string:", e);
+    return ""; // Return empty string on failure
+  }
+}
+
+const INSTALLER_SCRIPT = b64_to_utf8(``);
+const INSTALLER_SCRIPT_ZH = b64_to_utf8(``);
 
 export default {
   async fetch(request, env, ctx) {
