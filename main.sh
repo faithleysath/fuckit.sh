@@ -202,10 +202,10 @@ _fuck_execute_prompt() {
     read -r confirmation
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
-        echo -e "$FUCK ${C_RED}IT, WE DO IT LIVE!${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED_BOLD}IT,${C_CYAN} WE DO IT LIVE!${C_RESET}" >&2
         # Execute the response from the server
         eval "$response"
-        echo -e "${C_GREEN}$FUCK It's done. Probably.${C_RESET}"
+        echo -e "$FUCK ${C_GREEN}It's done. Probably.${C_RESET}"
     else
         echo -e "$FUCK ${C_RED}Fine, do it yourself.${C_RESET}" >&2
     fi
