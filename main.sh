@@ -19,6 +19,19 @@
 
 set -euo pipefail
 
+# --- Color Definitions ---
+readonly C_RESET='\033[0m'
+readonly C_RED_BOLD='\033[1;31m'
+readonly C_GREEN='\033[0;32m'
+readonly C_YELLOW='\033[0;33m'
+readonly C_CYAN='\033[0;36m'
+readonly C_BOLD='\033[1m'
+
+# --- FUCK! ---
+readonly FUCK="${C_RED_BOLD}FUCK!${C_RESET}"
+readonly FCKN="${C_RED_BOLD}F*CKING${C_RESET}"
+
+
 # --- Configuration ---
 readonly INSTALL_DIR="$HOME/.fuck"
 readonly MAIN_SH="$INSTALL_DIR/main.sh"
@@ -67,8 +80,13 @@ _fuck_json_escape() {
 # The main function that contacts the API
 # Takes >0 arguments as the prompt
 _fuck_execute_prompt() {
+    if ! command -v curl &> /dev/null; then
+        echo -e "$FUCK 'fuck' command needs 'curl'. Please install it." >&2
+        return 1
+    fi
+
     if [ "$#" -eq 0 ]; then
-        echo "Usage: fuck \"your natural language prompt\"" >&2
+        echo -e "$FUCK You forgot to ask me what to do." >&2
         return 1
     fi
 
@@ -89,7 +107,7 @@ _fuck_execute_prompt() {
     # API_ENDPOINT must be hardcoded here for the logic to be portable
     local api_url="https://fuckit.sh/"
 
-    echo "Querying LLM (via $api_url)..." >&2
+    echo -e "$FCKN thinking..." >&2
 
     local response
     response=$(curl -s -X POST "$api_url" \
@@ -97,27 +115,28 @@ _fuck_execute_prompt() {
         -d "$payload")
 
     if [ -z "$response" ]; then
-        echo "Error: Received empty response from server." >&2
+        echo -e "$FUCK The AI is ghosting me. Got nothing back." >&2
         return 1
     fi
 
     # --- User Confirmation (as requested) ---
-    echo "--- Suggested Command(s) from LLM ---"
+    echo -e "--- The AI mumbled this, hope it's right ---"
     # Pipe to 'more' for user review
-    echo "$response" | more
-    echo "-------------------------------------"
+    echo -e "${C_CYAN}$response${C_RESET}" | more
+    echo "------------------------------------------"
     
     # Secondary confirmation prompt
-    printf "Execute the command(s) above? [y/N] "
+    printf "$FCKN execute it? [y/N] "
     local confirmation
     read -r confirmation
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
-        echo "Executing..." >&2
+        echo -e "$FUCK IT, WE DO IT LIVE!" >&2
         # Execute the response from the server
         eval "$response"
+        echo -e "$FUCK It's done. Probably."
     else
-        echo "Aborted." >&2
+        echo -e "$FUCK Fine, do it yourself." >&2
     fi
 }
 
@@ -153,29 +172,27 @@ _installer_detect_profile() {
 
 # Main installation function
 _install_script() {
-    echo "Installing fuckit.sh to $INSTALL_DIR..."
+    echo -e "Alright, let's install this shit to $INSTALL_DIR..."
     mkdir -p "$INSTALL_DIR"
     
     # Write the embedded core logic to the main.sh file
     echo "$CORE_LOGIC" > "$MAIN_SH"
     
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to write to $MAIN_SH. Check permissions." >&2
+        echo -e "$FUCK Can't write to the file. Check your damn permissions." >&2
         return 1
     fi
     
-    echo "Installation successful: $MAIN_SH created."
+    echo -e "--- $FUCK It's installed. ---"
 
     # Add source line to shell profile
     local profile_file
     profile_file=$(_installer_detect_profile)
     
     if [ "$profile_file" = "unknown_profile" ]; then
-        echo "Warning: Could not detect shell profile." >&2
-        echo "Please manually add the following line to your shell's startup file (e.g., .zshrc, .bashrc):" >&2
-        echo "" >&2
-        echo "  source $MAIN_SH" >&2
-        echo "" >&2
+        echo -e "$FUCK I can't find .bashrc, .zshrc, or .profile. You're on your own." >&2
+        echo -e "Manually add this line to whatever startup file you use:" >&2
+        echo -e "\n  ${C_CYAN}source $MAIN_SH${C_RESET}\n" >&2
         return
     fi
     
@@ -185,8 +202,8 @@ _install_script() {
         echo "" >> "$profile_file"
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo "Done. Please restart your shell or run:"
-        echo "  source $profile_file"
+        echo -e "Done. Now restart your goddamn shell or run:"
+        echo -e "  ${C_CYAN}source $profile_file${C_RESET}"
     else
         echo "Already installed (source line found in $profile_file)."
         echo "Run 'bash $0' again to update (assuming you saved this as a file)."
@@ -199,6 +216,7 @@ _install_script() {
 # If arguments are passed (e.g., "bash -s ...")
 if [ "$#" -gt 0 ]; then
     # Temporary Mode
+    echo -e "--- $FCKN in temporary (one-shot) mode... ---"
     # Evaluate the core logic to define functions in this shell
     eval "$CORE_LOGIC"
     # Call the main function directly (alias won't work here)
