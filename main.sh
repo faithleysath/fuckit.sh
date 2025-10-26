@@ -40,7 +40,7 @@ readonly API_ENDPOINT="https://fuckit.sh/"
 
 
 # --- Core Logic (Embedded as a string) ---
-read -r -d '' CORE_LOGIC << 'EOF'
+CORE_LOGIC=$(cat <<'EOF'
 
 # --- Begin Core Logic for fuckit.sh ---
 
@@ -145,6 +145,7 @@ alias fuck='_fuck_execute_prompt'
 
 # --- End Core Logic ---
 EOF
+)
 # --- End of Core Logic Heredoc ---
 
 
