@@ -244,7 +244,7 @@ _installer_detect_profile() {
 
 # Main installation function
 _install_script() {
-    echo -e "${C_GREEN}Installing fuckit.sh to $INSTALL_DIR...${C_RESET}"
+    echo -e "$FCKN ${C_BOLD}Alright, let's get this shit installed...${C_RESET}"
     mkdir -p "$INSTALL_DIR"
     
     # Write the embedded core logic to the main.sh file
@@ -271,11 +271,16 @@ _install_script() {
         echo "" >> "$profile_file"
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo -e "${C_GREEN}Installation complete.${C_RESET}"
-        echo -e "${C_CYAN}Please restart your shell or run:${C_RESET}"
-        echo -e "  ${C_CYAN}source $profile_file${C_RESET}"
+        echo -e "$FUCK ${C_GREEN}It's installed. Now get to work.${C_RESET}"
+        echo -e "${C_CYAN}Restart your shell, or run ${C_BOLD}source $profile_file${C_CYAN} to start.${C_RESET}"
+        echo -e "\n${C_BOLD}--- HOW TO USE ---${C_RESET}"
+        echo -e "Just type ${C_RED}fuck${C_RESET} followed by what you want to do."
+        echo -e "Examples:"
+        echo -e "  ${C_CYAN}fuck install git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck find all files larger than 10MB in the current directory${C_RESET}"
+        echo -e "  ${C_CYAN}fuck uninstall${C_RESET}"
     else
-        echo -e "${C_GREEN}Already installed. To update, run the installer again.${C_RESET}"
+        echo -e "$FUCK ${C_YELLOW}It's already installed, genius. Just updated the script for you.${C_RESET}"
     fi
 }
 
