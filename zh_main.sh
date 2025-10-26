@@ -121,7 +121,7 @@ _fuck_json_escape() {
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}我操死你的🐎！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_RED_BOLD}我真是操死你的🐎了！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -142,8 +142,24 @@ _uninstall_script() {
         rm -rf "$INSTALL_DIR"
     fi
 
-    echo -e "${C_GREEN}行，我滚了，以后别他妈哭着求我回来。${C_RESET}"
-    echo -e "${C_CYAN}赶紧重启你那破终端吧，我看见你就烦。${C_RESET}"
+    sleep 3
+    echo -e "${C_GREEN}行，我滚了，以后别他妈哭着求我回来。${C_CYAN}赶紧重启你那破终端吧，我看见你就烦。${C_RESET}"
+    sleep 3
+    echo -e "${C_YELLOW}临别之际，献上一首小诗，祝您前程似锦：${C_RESET}"
+    sleep 2
+    echo -e "\n${C_RED}《诗经·彼阳》${C_RESET}"
+    sleep 2
+    echo -e "${C_YELLOW}彼阳若至，初升东曦。${C_RESET}"
+    sleep 2
+    echo -e "${C_YELLOW}绯雾飒蔽，似幕绡绸。${C_RESET}"
+    sleep 3
+    echo -e "${C_YELLOW}彼阳篝碧，雾霂涧滁。${C_RESET}"
+    sleep 4
+    echo -e "${C_YELLOW}赤石冬溪，似玛瑙潭。${C_RESET}"
+    sleep 4
+    echo -e "${C_YELLOW}彼阳晚意，暖梦似乐。${C_RESET}"
+    sleep 3
+    echo -e "${C_YELLOW}寐游浮沐，若雉飞舞。${C_RESET}"
 }
 
 # 跟 API 通信的主函数
