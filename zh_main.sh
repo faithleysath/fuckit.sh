@@ -121,7 +121,7 @@ _fuck_json_escape() {
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}我日你哥！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴？行啊你个白眼狼。${C_RESET}"
+    echo -e "${C_RED_BOLD}我操死你的🐎！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -143,7 +143,7 @@ _uninstall_script() {
     fi
 
     echo -e "${C_GREEN}行，我滚了，以后别他妈哭着求我回来。${C_RESET}"
-    echo -e "${C_CYAN}赶紧重启你那破终端，我看着你就烦。${C_RESET}"
+    echo -e "${C_CYAN}赶紧重启你那破终端吧，我看见你就烦。${C_RESET}"
 }
 
 # 跟 API 通信的主函数
