@@ -3,6 +3,7 @@
 // This is the content of your main.sh installer script.
 // It will be served when a user makes a GET request.
 const INSTALLER_SCRIPT = atob(``);
+const INSTALLER_SCRIPT_ZH = atob(``);
 
 export default {
   async fetch(request, env, ctx) {
@@ -22,10 +23,16 @@ export default {
  * @returns {Response} A response with the shell script.
  */
 function handleGetRequest(request) {
-  return new Response(INSTALLER_SCRIPT, {
+  const url = new URL(request.url);
+  const isChinese = url.hostname === 'zh.fuckit.sh';
+
+  const script = isChinese ? INSTALLER_SCRIPT_ZH : INSTALLER_SCRIPT;
+  const filename = isChinese ? 'fuckit.sh' : 'fuckit.sh'; // Keep filename consistent
+
+  return new Response(script, {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Disposition': 'attachment; filename="fuckit.sh"',
+      'Content-Disposition': `attachment; filename="${filename}"`,
     },
   });
 }
@@ -51,12 +58,19 @@ async function handlePostRequest(request, env) {
     const apiBase = (env.OPENAI_API_BASE || 'https://api.openai.com/v1').replace(/\/$/, '');
     const apiUrl = `${apiBase}/chat/completions`;
 
+    const url = new URL(request.url);
+    const isChinese = url.hostname === 'zh.fuckit.sh';
+
+    const system_prompt = isChinese
+      ? `你是一个专业的 shell 脚本生成器。用户会提供他们的系统信息和一个命令。你的任务是返回一个可执行的、原始的 shell 脚本来完成他们的目标。脚本可以是多行的。不要提供任何解释、注释、markdown 格式（比如 \`\`\`bash）或 shebang（例如 #!/bin/bash）。只需要原始的脚本内容。用户的系统信息是：${sysinfo}`
+      : `You are an expert shell script generator. A user will provide their system information and a prompt. Your task is to return a raw, executable shell script that accomplishes their goal. The script can be multi-line. Do not provide any explanation, comments, markdown formatting (like \`\`\`bash), or a shebang (e.g., #!/bin/bash). Just the raw script content. The user's system info is: ${sysinfo}`;
+
     const aiRequestPayload = {
       model: model,
       messages: [
         {
           role: 'system',
-          content: `You are an expert shell script generator. A user will provide their system information and a prompt. Your task is to return a raw, executable shell script that accomplishes their goal. The script can be multi-line. Do not provide any explanation, comments, markdown formatting (like \`\`\`bash), or a shebang (e.g., #!/bin/bash). Just the raw script content. The user's system info is: ${sysinfo}`,
+          content: system_prompt,
         },
         {
           role: 'user',

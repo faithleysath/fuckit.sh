@@ -5,3 +5,7 @@ compatibility_date = "2025-10-26" # 使用一个近期的日期
 [[routes]]
 pattern = "fuckit.sh"
 custom_domain = true
+
+[[routes]]
+pattern = "zh.fuckit.sh"
+custom_domain = true
