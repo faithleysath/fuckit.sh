@@ -1,9 +1,7 @@
-# Deployment
-
-To deploy the worker to Cloudflare, simply run:
-
-```bash
-wrangler deploy
+```macos
+B64_CONTENT=$(base64 -i main.sh) && sed -i.bak "s#^const INSTALLER_SCRIPT =.*#const INSTALLER_SCRIPT = atob(\`${B64_CONTENT}\`);#" worker.js
 ```
 
-That's it. The `wrangler.toml` is configured to automatically include `main.sh` and `zh_main.sh` in the build.
+```linux
+B64_CONTENT=$(base64 -w 0 main.sh) && sed -i.bak "s#^const INSTALLER_SCRIPT =.*#const INSTALLER_SCRIPT = atob(\`${B64_CONTENT}\`);#" worker.js
+```
