@@ -35,6 +35,10 @@ readonly FCKN="${C_RED}你他妈${C_RESET}"
 
 
 # --- 配置 ---
+if [ -z "${HOME:-}" ]; then
+    echo -e "\033[1;31m操你妈!\033[0m \033[0;31m你的 HOME 变量没设置，我他妈怎么知道装哪儿？自己搞定！ (比如 export HOME=/root)\033[0m" >&2
+    exit 1
+fi
 readonly INSTALL_DIR="$HOME/.fuck"
 readonly MAIN_SH="$INSTALL_DIR/main.sh"
 # Cloudflare Edge Function 的 API 地址
@@ -62,8 +66,16 @@ if [ -z "${C_RESET:-}" ]; then
     readonly FCKN="${C_RED}你他妈${C_RESET}"
 
     # --- 配置 ---
-    readonly INSTALL_DIR="$HOME/.fuck"
-    readonly MAIN_SH="$INSTALL_DIR/main.sh"
+    if [ -z "${HOME:-}" ]; then
+        # 这部分是给临时运行模式用的，它不安装任何东西
+        # 但我们还是需要定义这些变量，免得脚本报错
+        # 安装程序部分会进行真正的检查
+        readonly INSTALL_DIR="/tmp/.fuck"
+        readonly MAIN_SH="/tmp/.fuck/main.sh"
+    else
+        readonly INSTALL_DIR="$HOME/.fuck"
+        readonly MAIN_SH="$INSTALL_DIR/main.sh"
+    fi
 fi
 
 # 找用户 shell 配置文件的辅助函数

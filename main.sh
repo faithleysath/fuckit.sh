@@ -34,6 +34,10 @@ readonly FCKN="${C_RED}F*CKING${C_RESET}"
 
 
 # --- Configuration ---
+if [ -z "${HOME:-}" ]; then
+    echo -e "\033[1;31mFUCK!\033[0m \033[0;31mYour HOME variable isn't set. I don't know where to install this shit. Set it yourself (e.g., export HOME=/root).\033[0m" >&2
+    exit 1
+fi
 readonly INSTALL_DIR="$HOME/.fuck"
 readonly MAIN_SH="$INSTALL_DIR/main.sh"
 # The API endpoint for the Cloudflare Edge Function
@@ -61,8 +65,16 @@ if [ -z "${C_RESET:-}" ]; then
     readonly FCKN="${C_RED}F*CKING${C_RESET}"
 
     # --- Configuration ---
-    readonly INSTALL_DIR="$HOME/.fuck"
-    readonly MAIN_SH="$INSTALL_DIR/main.sh"
+    if [ -z "${HOME:-}" ]; then
+        # This part is for the temporary runner, which doesn't install,
+        # but we need the variables defined to avoid unbound errors.
+        # The install check will happen in the installer part of the script.
+        readonly INSTALL_DIR="/tmp/.fuck"
+        readonly MAIN_SH="/tmp/.fuck/main.sh"
+    else
+        readonly INSTALL_DIR="$HOME/.fuck"
+        readonly MAIN_SH="$INSTALL_DIR/main.sh"
+    fi
 fi
 
 # Helper to find the user's shell profile file
