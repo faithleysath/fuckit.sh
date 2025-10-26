@@ -1,4 +1,4 @@
-# fuckit.sh
+<h1 align="center">fuckit.sh</h1>
 
 <p align="center">
   <strong>English</strong> | <a href="./README.md">简体中文</a>
@@ -50,7 +50,9 @@ Pick your preferred language and run the command below in your terminal.
 curl -sS https://fuckit.sh | bash
 ```
 
-> **Security Notice (As if you care)**:
+> [!WARNING]
+> **Security Notice (As if you care)**
+> 
 > If you don't trust piping scripts directly into `bash`, you can do it step-by-step:
 > 1.  **Download**: `curl -o fuckit.sh https://fuckit.sh`
 > 2.  **Inspect**: `less fuckit.sh`

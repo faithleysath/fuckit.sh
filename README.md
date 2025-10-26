@@ -1,4 +1,4 @@
-# fuckit.sh
+<h1 align="center">fuckit.sh</h1>
 
 <p align="center">
   <a href="./README.en.md">English</a> | <strong>简体中文</strong>
@@ -58,7 +58,9 @@ curl -sS https://fuckit.sh | bash
 curl -sS https://zh.fuckit.sh | bash
 ```
 
-> **安全提示 (安你妈的全)**:
+> [!WARNING]
+> **安全提示 (安你妈的全)**
+> 
 > 如果你不信任直接在 `| bash` 中运行脚本，可以分步操作：
 > 1.  **下载**: `curl -o fuckit.sh https://fuckit.sh`
 > 2.  **瞅一眼**: `less fuckit.sh`
