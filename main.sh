@@ -120,7 +120,7 @@ _fuck_json_escape() {
 
 # Uninstalls the script
 _uninstall_script() {
-    echo -e "${C_YELLOW}Uninstalling fuckit.sh...${C_RESET}"
+    echo -e "$FUCK ${C_YELLOW}So you're kicking me out? Fine.${C_RESET}"
 
     # Find the profile file
     local profile_file
@@ -134,15 +134,15 @@ _uninstall_script() {
             sed -i.bak "\|# Added by fuckit.sh installer|d" "$profile_file"
         fi
     else
-        echo -e "${C_YELLOW}Could not find a shell profile file to modify.${C_RESET}"
+        echo -e "${C_YELLOW}Could not find a shell profile file to modify. Your problem now.${C_RESET}"
     fi
 
     if [ -d "$INSTALL_DIR" ]; then
         rm -rf "$INSTALL_DIR"
     fi
 
-    echo -e "${C_GREEN}Uninstallation complete.${C_RESET}"
-    echo -e "${C_CYAN}Please restart your shell for the changes to take effect.${C_RESET}"
+    echo -e "$FUCK ${C_GREEN}I'm gone. Don't come crying back.${C_RESET}"
+    echo -e "${C_CYAN}Now restart your damn shell.${C_RESET}"
 }
 
 # The main function that contacts the API
