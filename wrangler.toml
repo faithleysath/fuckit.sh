@@ -2,6 +2,16 @@ name = "fuckit-sh" # 您可以自定义 Worker 的名称
 main = "worker.js" # 指定入口文件
 compatibility_date = "2025-10-26" # 使用一个近期的日期
 
+# 定义一个规则，让 wrangler 将 .sh 文件作为纯文本处理
+[[rules]]
+type = "Text"
+globs = ["**/*.sh"]
+fallthrough = true
+
 [[routes]]
 pattern = "fuckit.sh"
+custom_domain = true
+
+[[routes]]
+pattern = "zh.fuckit.sh"
 custom_domain = true
