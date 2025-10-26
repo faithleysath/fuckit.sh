@@ -225,7 +225,7 @@ _fuck_execute_prompt() {
         eval "$response"
         echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
     else
-        echo -e "${C_RED}怂逼！不干拉鸡巴倒！${C_RESET}" >&2
+        echo -e "${C_RED}怂逼！不敢就滚，别浪费老子时间。${C_RESET}" >&2
     fi
 }
 
