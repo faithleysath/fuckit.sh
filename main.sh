@@ -46,21 +46,24 @@ CORE_LOGIC=$(cat <<'EOF'
 # --- Begin Core Logic for fuckit.sh ---
 
 # --- Color Definitions ---
-readonly C_RESET='\033[0m'
-readonly C_RED_BOLD='\033[1;31m'
-readonly C_RED='\033[0;31m'
-readonly C_GREEN='\033[0;32m'
-readonly C_YELLOW='\033[0;33m'
-readonly C_CYAN='\033[0;36m'
-readonly C_BOLD='\033[1m'
+# Only define colors if they haven't been defined yet (for temp mode)
+if [ -z "${C_RESET:-}" ]; then
+    readonly C_RESET='\033[0m'
+    readonly C_RED_BOLD='\033[1;31m'
+    readonly C_RED='\033[0;31m'
+    readonly C_GREEN='\033[0;32m'
+    readonly C_YELLOW='\033[0;33m'
+    readonly C_CYAN='\033[0;36m'
+    readonly C_BOLD='\033[1m'
 
-# --- FUCK! ---
-readonly FUCK="${C_RED_BOLD}FUCK!${C_RESET}"
-readonly FCKN="${C_RED}F*CKING${C_RESET}"
+    # --- FUCK! ---
+    readonly FUCK="${C_RED_BOLD}FUCK!${C_RESET}"
+    readonly FCKN="${C_RED}F*CKING${C_RESET}"
 
-# --- Configuration ---
-readonly INSTALL_DIR="$HOME/.fuck"
-readonly MAIN_SH="$INSTALL_DIR/main.sh"
+    # --- Configuration ---
+    readonly INSTALL_DIR="$HOME/.fuck"
+    readonly MAIN_SH="$INSTALL_DIR/main.sh"
+fi
 
 # Helper to find the user's shell profile file
 _installer_detect_profile() {
