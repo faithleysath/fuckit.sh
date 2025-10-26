@@ -22,6 +22,7 @@ set -euo pipefail
 # --- Color Definitions ---
 readonly C_RESET='\033[0m'
 readonly C_RED_BOLD='\033[1;31m'
+readonly C_RED='\033[0;31m'
 readonly C_GREEN='\033[0;32m'
 readonly C_YELLOW='\033[0;33m'
 readonly C_CYAN='\033[0;36m'
@@ -29,7 +30,7 @@ readonly C_BOLD='\033[1m'
 
 # --- FUCK! ---
 readonly FUCK="${C_RED_BOLD}FUCK!${C_RESET}"
-readonly FCKN="${C_RED_BOLD}F*CKING${C_RESET}"
+readonly FCKN="${C_RED}F*CKING${C_RESET}"
 
 
 # --- Configuration ---
@@ -120,13 +121,13 @@ _fuck_execute_prompt() {
     fi
 
     # --- User Confirmation (as requested) ---
-    echo -e "--- The AI mumbled this, hope it's right ---"
+    echo -e "${C_YELLOW}--- The AI mumbled this, hope it's right ---${C_RESET}"
     # Pipe to 'more' for user review
     echo -e "${C_CYAN}$response${C_RESET}" | more
-    echo "------------------------------------------"
+    echo -e "${C_BOLD}------------------------------------------${C_RESET}"
     
     # Secondary confirmation prompt
-    printf "$FCKN execute it? [y/N] "
+    printf "${C_YELLOW}$FCKN execute it? [y/N]${C_RESET} "
     local confirmation
     read -r confirmation
 
@@ -134,7 +135,7 @@ _fuck_execute_prompt() {
         echo -e "$FUCK IT, WE DO IT LIVE!" >&2
         # Execute the response from the server
         eval "$response"
-        echo -e "$FUCK It's done. Probably."
+        echo -e "${C_GREEN}$FUCK It's done. Probably.${C_RESET}"
     else
         echo -e "$FUCK Fine, do it yourself." >&2
     fi
@@ -173,7 +174,7 @@ _installer_detect_profile() {
 
 # Main installation function
 _install_script() {
-    echo -e "Alright, let's install this shit to $INSTALL_DIR..."
+    echo -e "${C_BOLD}Alright, let's install this shit to $INSTALL_DIR...${C_RESET}"
     mkdir -p "$INSTALL_DIR"
     
     # Write the embedded core logic to the main.sh file
@@ -192,22 +193,22 @@ _install_script() {
     
     if [ "$profile_file" = "unknown_profile" ]; then
         echo -e "$FUCK I can't find .bashrc, .zshrc, or .profile. You're on your own." >&2
-        echo -e "Manually add this line to whatever startup file you use:" >&2
+        echo -e "${C_YELLOW}Manually add this line to whatever startup file you use:${C_RESET}" >&2
         echo -e "\n  ${C_CYAN}source $MAIN_SH${C_RESET}\n" >&2
         return
     fi
     
     local source_line="source $MAIN_SH"
     if ! grep -qF "$source_line" "$profile_file"; then
-        echo "Adding source line to $profile_file..."
+        echo -e "${C_CYAN}Adding source line to $profile_file...${C_RESET}"
         echo "" >> "$profile_file"
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo -e "Done. Now restart your goddamn shell or run:"
+        echo -e "${C_GREEN}Done. Now restart your goddamn shell or run:${C_RESET}"
         echo -e "  ${C_CYAN}source $profile_file${C_RESET}"
     else
-        echo "Already installed (source line found in $profile_file)."
-        echo "Run 'bash $0' again to update (assuming you saved this as a file)."
+        echo -e "${C_GREEN}Already installed (source line found in $profile_file).${C_RESET}"
+        echo -e "${C_CYAN}Run 'bash $0' again to update (assuming you saved this as a file).${C_RESET}"
     fi
 }
 
