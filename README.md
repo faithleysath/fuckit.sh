@@ -59,7 +59,7 @@ curl -sS https://zh.fuckit.sh | bash
 ```
 
 > [!WARNING]
-> **安全提示 (安你妈的全)**
+> **安全提示**
 > 
 > 如果你不信任直接在 `| bash` 中运行脚本，可以分步操作：
 > 1.  **下载**: `curl -o fuckit.sh https://fuckit.sh`
