@@ -78,10 +78,10 @@ The AI will return the command it thinks is correct. You confirm, and it runs.
 # Find all files larger than 10MB in the current directory
 fuck find all files larger than 10MB in the current directory
 
-# Install git
+# Install git (auto-detects apt/yum/brew, etc.)
 fuck install git
 
-# Uninstall git
+# Uninstall git (also auto-detects)
 fuck uninstall git
 ```
 

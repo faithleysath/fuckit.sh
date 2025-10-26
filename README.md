@@ -86,10 +86,10 @@ AI 会返回它认为正确的命令，你确认后即可执行。
 # 查找当前目录下所有大于 10MB 的文件
 fuck find all files larger than 10MB in the current directory
 
-# 安装 git
+# 安装 git (自动识别 apt/yum/brew 等)
 fuck install git
 
-# 卸载 git
+# 卸载 git (同样会自动识别)
 fuck uninstall git
 ```
 
