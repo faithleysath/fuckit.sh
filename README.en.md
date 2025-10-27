@@ -27,13 +27,11 @@ When you're too lazy to check the `man` pages or search on Google, just `fuck` i
 
 **This project is completely free to use. You do not need to provide your own OpenAI API Key.**
 
----
 
 ## Preview
 
 ![Preview](preview.gif)
 
----
 
 ## Features
 
