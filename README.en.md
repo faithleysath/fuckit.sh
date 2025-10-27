@@ -29,6 +29,12 @@ When you're too lazy to check the `man` pages or search on Google, just `fuck` i
 
 ---
 
+## Preview
+
+![Preview](preview.gif)
+
+---
+
 ## Features
 
 *   **Natural Language to Command**: Directly translates your plain English into executable shell commands.
