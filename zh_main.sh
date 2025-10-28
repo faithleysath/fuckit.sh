@@ -62,7 +62,7 @@ if [ -z "${C_RESET:-}" ]; then
     readonly C_BOLD='\033[1m'
 
     # --- 操! ---
-    readonly FUCK="${C_RED_BOLD}操你妈!${C_RESET}"
+    readonly FUCK="${C_RED_BOLD}操!${C_RESET}"
     readonly FCKN="${C_RED}你他妈${C_RESET}"
 
     # --- 配置 ---
@@ -133,7 +133,7 @@ _fuck_json_escape() {
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}我真是操死你的🐎了！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -232,7 +232,7 @@ _fuck_execute_prompt() {
     read -r confirmation < /dev/tty
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
-        echo -e "${C_RED_BOLD}我操你大爷！${C_RESET}${C_CYAN} 还等啥呢，干他妈的！${C_RESET}" >&2
+        echo -e "${C_RED_BOLD}我操！${C_RESET}${C_CYAN} 还等啥呢，干他妈的！${C_RESET}" >&2
         # 执行服务器返回的命令并检查退出码
         if eval "$response"; then
             echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
@@ -241,7 +241,7 @@ _fuck_execute_prompt() {
             echo -e "${C_RED_BOLD}操！${C_RED}这破命令执行失败了，退出码是 $exit_code。别他妈看我，自己想办法。${C_RESET}" >&2
         fi
     else
-        echo -e "${C_RED}怂逼！不敢就滚，别浪费老子时间。${C_RESET}" >&2
+        echo -e "${C_RED}怂逼！不干就滚，别浪费老子时间。${C_RESET}" >&2
     fi
 }
 
