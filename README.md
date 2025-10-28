@@ -21,6 +21,7 @@
 
 > [!IMPORTANT]
 > **本项目正在重构中**
+> 
 > 受[Linux.do佬友们](https://linux.do/t/topic/1099746)的启发和建议，此项目将用[Amber](https://amber-lang.com)语言重构，并加入完善的版本管理、更新提示，以及自定义custom，自定义alias、个人偏好设置、ui风格（猫娘、御姐等）等更多新功能。
 
 **我他妈忘了那条命令了。**
