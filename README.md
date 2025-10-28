@@ -219,3 +219,6 @@ curl -sS https://fuckit.sh | bash -s "find all files larger than 10MB"
 ## Star History
 
 [![Star History Chart](https://app.repohistory.com/api/svg?repo=faithleysath/fuckit.sh&type=Date&background=FFFFFF&color=f86262)](https://app.repohistory.com/star-history)
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/faithleysath/fuckit.sh.svg?background=%23FFFFFF&axis=%23333333&line=%23e76060)](https://starchart.cc/faithleysath/fuckit.sh)
