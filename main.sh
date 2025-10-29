@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.4.0-alpha
-# date: 2025-10-29 16:36:12
+# date: 2025-10-29 16:41:41
 split__3_v0() {
     local text=$1
     local delimiter=$2
@@ -194,7 +194,7 @@ fi
     __AF_file_download156_v0=1;
     return 0
 }
-__0_VERSION="0.1.0"
+__0_VERSION="0.1.1"
 __1_LANG="en"
 __2_NAME="fuck"
 # const URL = "https://fuckit.sh"
@@ -259,7 +259,7 @@ done
 install__159_v0() {
     local home_dir=$1
     # First, check if already installed, just check version command directly
-    __AMBER_VAL_8=$( ${__2_NAME} --version );
+    __AMBER_VAL_8=$( ${__2_NAME} --version 2> /dev/null );
     __AS=$?;
 if [ $__AS != 0 ]; then
         local current_version=""
@@ -327,7 +327,7 @@ fi
         echo "$__AF_echo_error109_v0__80_9" > /dev/null 2>&1
 fi
     # Step5: Verify installation
-    __AMBER_VAL_9=$( ${bin_path} --version );
+    __AMBER_VAL_9=$( ${bin_path} --version 2> /dev/null );
     __AS=$?;
 if [ $__AS != 0 ]; then
         local installed_version=""

@@ -1,4 +1,4 @@
-const VERSION = "0.1.0"
+const VERSION = "0.1.1"
 const LANG = "en"
 const NAME = "fuck"
 // const URL = "https://fuckit.sh"
@@ -54,7 +54,7 @@ fun install(home_dir: Text): Null {
     else {
         let comparison = compare_versions(current_version, VERSION) failed : let comparison = -1
         if comparison == -1 :
-            echo_info("A new version ({VERSION}) is available. Your current version is {current_version}. Updating...")
+            echo_warning("A new version ({VERSION}) is available. Your current version is {current_version}. Updating...")
         else {
             echo_info("You are already using the latest version ({current_version}).")
             exit 0
