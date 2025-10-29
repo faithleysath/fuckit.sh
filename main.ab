@@ -1,13 +1,23 @@
-import { env_var_get, echo_error, echo_warning, echo_info, is_command } from "std/env"
+// Check for dependencies first
+trust $
+if ! command -v bc > /dev/null 2>&1; then
+    echo "Dependency check failed: 'bc' command not found. Please install 'bc' and try again." >&2
+    echo "  - Debian/Ubuntu: sudo apt-get install bc" >&2
+    echo "  - RedHat/CentOS: sudo yum install bc" >&2
+    echo "  - Fedora:        sudo dnf install bc" >&2
+    echo "  - Arch Linux:    sudo pacman -S bc" >&2
+    echo "  - openSUSE:      sudo zypper install bc" >&2
+    echo "  - Alpine:        apk add bc" >&2
+    exit 1
+fi
+$
+
+import { env_var_get, echo_error, echo_warning, echo_info } from "std/env"
 import { starts_with } from "std/text"
 import { array_contains } from "std/array"
 
 const VERSION = "0.1.0"
 const LANG = "en"
-
-// Check for dependencies first
-if not is_command("bc") :
-    echo_error("Dependency check failed: 'bc' command not found. Please install 'bc' and try again.\nFor Debian/Ubuntu: sudo apt-get install bc\nFor RedHat/CentOS: sudo yum install bc")
 
 fun install(home_dir: Text): Null {
     echo_info("Entering Install Mode...")
