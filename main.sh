@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.4.0-alpha
-# date: 2025-10-29 14:47:27
+# date: 2025-10-29 15:02:03
 starts_with__20_v0() {
     local text=$1
     local prefix=$2
@@ -85,9 +85,9 @@ array_contains__117_v0() {
     return 0
 }
 # Check for dependencies first
-
+__AMBER_VAL_5=$(
 if ! command -v bc > /dev/null 2>&1; then
-    echo "Dependency check failed: 'bc' command not found. Please install 'bc' and try again." >&2
+    echo -e "\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\033[0m" >&2
     echo "  - Debian/Ubuntu: sudo apt-get install bc" >&2
     echo "  - RedHat/CentOS: sudo yum install bc" >&2
     echo "  - Fedora:        sudo dnf install bc" >&2
@@ -96,10 +96,11 @@ if ! command -v bc > /dev/null 2>&1; then
     echo "  - Alpine:        apk add bc" >&2
     exit 1
 fi
-;
-__AS=$?
-__0_VERSION="0.1.0"
-__1_LANG="en"
+);
+__AS=$?;
+__0__="${__AMBER_VAL_5}"
+__1_VERSION="0.1.0"
+__2_LANG="en"
 install__125_v0() {
     local home_dir=$1
     echo_info__106_v0 "Entering Install Mode...";
@@ -116,12 +117,12 @@ fi
     # First argument is the script name
     script_name="${arguments[0]}"
     # Remaining arguments are passed to the script
-    __SLICE_UPPER_5="${#arguments[@]}";
-    __SLICE_OFFSET_6=1;
-    __SLICE_OFFSET_6=$((__SLICE_OFFSET_6 > 0 ? __SLICE_OFFSET_6 : 0));
-    __SLICE_LENGTH_7=$(echo "${#arguments[@]}" '-' $__SLICE_OFFSET_6 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
-    __SLICE_LENGTH_7=$((__SLICE_LENGTH_7 > 0 ? __SLICE_LENGTH_7 : 0));
-    script_args=("${arguments[@]:$__SLICE_OFFSET_6:$__SLICE_LENGTH_7}")
+    __SLICE_UPPER_6="${#arguments[@]}";
+    __SLICE_OFFSET_7=1;
+    __SLICE_OFFSET_7=$((__SLICE_OFFSET_7 > 0 ? __SLICE_OFFSET_7 : 0));
+    __SLICE_LENGTH_8=$(echo "${#arguments[@]}" '-' $__SLICE_OFFSET_7 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
+    __SLICE_LENGTH_8=$((__SLICE_LENGTH_8 > 0 ? __SLICE_LENGTH_8 : 0));
+    script_args=("${arguments[@]:$__SLICE_OFFSET_7:$__SLICE_LENGTH_8}")
     # Get the home directory from environment variable
     env_var_get__91_v0 "HOME";
     __AS=$?;
@@ -135,8 +136,8 @@ fi;
     # Check if entering install mode or normal execution
     starts_with__20_v0 "${script_name}" "${home_dir}""/.local/bin";
     __AF_starts_with20_v0__42_60="$__AF_starts_with20_v0";
-    __AMBER_ARRAY_8=("-v" "--version" "version");
-    array_contains__117_v0 __AMBER_ARRAY_8[@] "${script_args[0]}";
+    __AMBER_ARRAY_9=("-v" "--version" "version");
+    array_contains__117_v0 __AMBER_ARRAY_9[@] "${script_args[0]}";
     __AF_array_contains117_v0__49_35="$__AF_array_contains117_v0";
     if [ $(echo $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__42_60" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         install__125_v0 "${home_dir}";
@@ -147,7 +148,7 @@ elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}
         __AF_echo_error109_v0__46_13="$__AF_echo_error109_v0";
         echo "$__AF_echo_error109_v0__46_13" > /dev/null 2>&1
 elif [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains117_v0__49_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-        echo "${__0_VERSION}"
+        echo "${__1_VERSION}"
 else
         echo_info__106_v0 "Entering Normal Execution Mode...";
         __AF_echo_info106_v0__54_13="$__AF_echo_info106_v0";

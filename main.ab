@@ -1,7 +1,7 @@
 // Check for dependencies first
-trust $
+let _ = trust $
 if ! command -v bc > /dev/null 2>&1; then
-    echo "Dependency check failed: 'bc' command not found. Please install 'bc' and try again." >&2
+    echo -e "\\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\\033[0m" >&2
     echo "  - Debian/Ubuntu: sudo apt-get install bc" >&2
     echo "  - RedHat/CentOS: sudo yum install bc" >&2
     echo "  - Fedora:        sudo dnf install bc" >&2
