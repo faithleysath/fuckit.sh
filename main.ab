@@ -1,7 +1,8 @@
 const VERSION = "0.1.0"
 const LANG = "en"
 const NAME = "fuck"
-const URL = "https://fuckit.sh"
+// const URL = "https://fuckit.sh"
+const URL = "http://127.0.0.1:5500/main.sh"
 
 // Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
 let _ = trust $
@@ -46,7 +47,7 @@ fun compare_versions(v1: Text, v2: Text): Num? {
 
 fun install(home_dir: Text): Null {
     // First, check if already installed, just check version command directly
-    let current_version = $ {NAME} --version $ failed : let current_version = ""
+    let current_version = $ {NAME} --version 2> /dev/null $ failed : let current_version = ""
 
     if current_version == "" :
         echo_info("fuckit.sh is not installed. Installing now...")
@@ -78,7 +79,7 @@ fun install(home_dir: Text): Null {
     if not file_chmod(bin_path, "+x") :
         echo_error("Failed to set executable permission on '{bin_path}'.")
     // Step5: Verify installation
-    let installed_version = $ {bin_path} --version $ failed : let installed_version = ""
+    let installed_version = $ {bin_path} --version 2> /dev/null $ failed : let installed_version = ""
     if installed_version == "" {
         echo "Verbose Information:"
         echo "  - Home Directory: {home_dir}"
@@ -87,7 +88,7 @@ fun install(home_dir: Text): Null {
         echo "  - Current Version: {current_version}"
         echo "  - Installed Version: {installed_version}"
         echo "  - PATH: {path_env}"
-        echo_error("Installation failed: Unable to verify installation.(It means executing '{bin_path} --version' did not return any output or failed.) Please check the above information and try again.")
+        echo_error("Installation failed: Unable to verify installation. (It means executing '{bin_path} --version' did not return any output or just failed.) Please check the above information and try again.")
     } else :
         echo_success("fuckit.sh version {installed_version} installed successfully at '{bin_path}'!")
     // Step6: Warn if bin_dir is not in PATH
@@ -126,7 +127,7 @@ main (arguments) {
         // Default case: Normal execution
         else {
             echo_info("Entering Normal Execution Mode...")
-            // Call normal execution function, e.g., execute(script_args)
+            echo "Usage: {NAME} [options]"
         }
     }
 }
