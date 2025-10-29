@@ -5,6 +5,7 @@ const NAME = "fuck"
 const URL = "http://127.0.0.1:5500/main.sh"
 
 // Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
+// check bc
 let _ = trust $
 if ! command -v bc > /dev/null 2>&1; then
     echo -e "\\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\\033[0m" >&2
@@ -14,6 +15,21 @@ if ! command -v bc > /dev/null 2>&1; then
     echo "  - Arch Linux:    sudo pacman -S bc" >&2
     echo "  - openSUSE:      sudo zypper install bc" >&2
     echo "  - Alpine:        apk add bc" >&2
+    exit 1
+fi
+$
+// check jq
+let _ = trust $
+if ! command -v jq > /dev/null 2>&1; then
+    echo -e "\\033[0;31mDependency check failed: 'jq' command not found. Please install 'jq' and try again.\\033[0m" >&2
+    echo "  - Debian/Ubuntu: sudo apt-get install jq" >&2
+    echo "  - RedHat/CentOS: sudo yum install jq" >&2
+    echo "  - Fedora:        sudo dnf install jq" >&2
+    echo "  - Arch Linux:    sudo pacman -S jq" >&2
+    echo "  - openSUSE:      sudo zypper install jq" >&2
+    echo "  - Alpine:        apk add jq" >&2
+    echo "  - MacOS (Homebrew): brew install jq" >&2
+    echo "  - Manual Download: https://github.com/jqlang/jq/releases" >&2
     exit 1
 fi
 $
