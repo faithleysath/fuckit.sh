@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.4.0-alpha
-# date: 2025-10-29 16:41:41
+# date: 2025-10-29 16:49:01
 split__3_v0() {
     local text=$1
     local delimiter=$2
@@ -169,7 +169,7 @@ array_contains__120_v0() {
     __AF_array_contains120_v0=$(echo ${result} '>=' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
     return 0
 }
-file_download__156_v0() {
+file_download__157_v0() {
     local url=$1
     local path=$2
     is_command__93_v0 "curl";
@@ -188,13 +188,13 @@ elif [ "$__AF_is_command93_v0__15_9" != 0 ]; then
          aria2c "${url}" -d "${path}" ;
         __AS=$?
 else
-        __AF_file_download156_v0=0;
+        __AF_file_download157_v0=0;
         return 0
 fi
-    __AF_file_download156_v0=1;
+    __AF_file_download157_v0=1;
     return 0
 }
-__0_VERSION="0.1.1"
+__0_VERSION="0.1.2"
 __1_LANG="en"
 __2_NAME="fuck"
 # const URL = "https://fuckit.sh"
@@ -214,7 +214,7 @@ fi
 );
 __AS=$?;
 __4__="${__AMBER_VAL_7}"
-compare_versions__158_v0() {
+compare_versions__159_v0() {
     local v1=$1
     local v2=$2
     split__3_v0 "${v1}" ".";
@@ -231,7 +231,7 @@ compare_versions__158_v0() {
         parse_number__12_v0 "${parts1[${i}]}";
         __AS=$?;
 if [ $__AS != 0 ]; then
-__AF_compare_versions158_v0=''
+__AF_compare_versions159_v0=''
 return $__AS
 fi;
         __AF_parse_number12_v0__38_34="$__AF_parse_number12_v0";
@@ -239,24 +239,24 @@ fi;
         parse_number__12_v0 "${parts2[${i}]}";
         __AS=$?;
 if [ $__AS != 0 ]; then
-__AF_compare_versions158_v0=''
+__AF_compare_versions159_v0=''
 return $__AS
 fi;
         __AF_parse_number12_v0__39_34="$__AF_parse_number12_v0";
         local num2=$(if [ $(echo ${i} '<' ${len2} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then echo "$__AF_parse_number12_v0__39_34"; else echo 0; fi)
         if [ $(echo ${num1} '>' ${num2} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-            __AF_compare_versions158_v0=1;
+            __AF_compare_versions159_v0=1;
             return 0
 fi
         if [ $(echo ${num1} '<' ${num2} | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-            __AF_compare_versions158_v0=$(echo  '-' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
+            __AF_compare_versions159_v0=$(echo  '-' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
             return 0
 fi
 done
-    __AF_compare_versions158_v0=0;
+    __AF_compare_versions159_v0=0;
     return 0
 }
-install__159_v0() {
+install__160_v0() {
     local home_dir=$1
     # First, check if already installed, just check version command directly
     __AMBER_VAL_8=$( ${__2_NAME} --version 2> /dev/null );
@@ -270,17 +270,17 @@ fi;
         __AF_echo_info106_v0__53_9="$__AF_echo_info106_v0";
         echo "$__AF_echo_info106_v0__53_9" > /dev/null 2>&1
 else
-        compare_versions__158_v0 "${current_version}" "${__0_VERSION}";
+        compare_versions__159_v0 "${current_version}" "${__0_VERSION}";
         __AS=$?;
 if [ $__AS != 0 ]; then
             local comparison=$(echo  '-' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
 fi;
-        __AF_compare_versions158_v0__55_26="$__AF_compare_versions158_v0";
-        local comparison="$__AF_compare_versions158_v0__55_26"
+        __AF_compare_versions159_v0__55_26="$__AF_compare_versions159_v0";
+        local comparison="$__AF_compare_versions159_v0__55_26"
         if [ $(echo ${comparison} '==' $(echo  '-' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-            echo_info__106_v0 "A new version (${__0_VERSION}) is available. Your current version is ${current_version}. Updating...";
-            __AF_echo_info106_v0__57_13="$__AF_echo_info106_v0";
-            echo "$__AF_echo_info106_v0__57_13" > /dev/null 2>&1
+            echo_warning__108_v0 "A new version (${__0_VERSION}) is available. Your current version is ${current_version}. Updating...";
+            __AF_echo_warning108_v0__57_13="$__AF_echo_warning108_v0";
+            echo "$__AF_echo_warning108_v0__57_13" > /dev/null 2>&1
 else
             echo_info__106_v0 "You are already using the latest version (${current_version}).";
             __AF_echo_info106_v0__59_13="$__AF_echo_info106_v0";
@@ -311,9 +311,9 @@ fi
     echo_info__106_v0 "Downloading 'fuckit.sh' to '${bin_dir}'...(via ${__3_URL})";
     __AF_echo_info106_v0__75_5="$__AF_echo_info106_v0";
     echo "$__AF_echo_info106_v0__75_5" > /dev/null 2>&1
-    file_download__156_v0 "${__3_URL}" "${bin_path}";
-    __AF_file_download156_v0__76_12="$__AF_file_download156_v0";
-    if [ $(echo  '!' "$__AF_file_download156_v0__76_12" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    file_download__157_v0 "${__3_URL}" "${bin_path}";
+    __AF_file_download157_v0__76_12="$__AF_file_download157_v0";
+    if [ $(echo  '!' "$__AF_file_download157_v0__76_12" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "No Avaliable CLI Tools Found, Need curl, wget or aria2c." 1;
         __AF_echo_error109_v0__77_9="$__AF_echo_error109_v0";
         echo "$__AF_echo_error109_v0__77_9" > /dev/null 2>&1
@@ -366,12 +366,38 @@ fi
         echo "$__AF_echo_info106_v0__98_9" > /dev/null 2>&1
 fi
 }
+uninstall__161_v0() {
+    local home_dir=$1
+    local bin_path="${home_dir}""/.local/bin/""${__2_NAME}"
+    file_exists__33_v0 "${bin_path}";
+    __AF_file_exists33_v0__104_8="$__AF_file_exists33_v0";
+    if [ "$__AF_file_exists33_v0__104_8" != 0 ]; then
+        echo_info__106_v0 "Uninstalling fuckit.sh from '${bin_path}'...";
+        __AF_echo_info106_v0__105_9="$__AF_echo_info106_v0";
+        echo "$__AF_echo_info106_v0__105_9" > /dev/null 2>&1
+         rm ${bin_path} ;
+        __AS=$?;
+if [ $__AS != 0 ]; then
+            echo_error__109_v0 "Failed to remove '${bin_path}'. Please check permissions." 1;
+            __AF_echo_error109_v0__107_13="$__AF_echo_error109_v0";
+            echo "$__AF_echo_error109_v0__107_13" > /dev/null 2>&1
+            exit 1
+fi
+        echo_success__107_v0 "fuckit.sh uninstalled successfully.";
+        __AF_echo_success107_v0__110_9="$__AF_echo_success107_v0";
+        echo "$__AF_echo_success107_v0__110_9" > /dev/null 2>&1
+else
+        echo_warning__108_v0 "fuckit.sh is not installed, nothing to do.";
+        __AF_echo_warning108_v0__112_9="$__AF_echo_warning108_v0";
+        echo "$__AF_echo_warning108_v0__112_9" > /dev/null 2>&1
+fi
+}
 declare -r arguments=("$0" "$@")
     # Handle zero arguments case (although this should not happen)
     if [ $(echo "${#arguments[@]}" '<' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "Oops, no arguments provided"'!'" It should not happen. But it did. Please visit https://fuckit.sh and report this issue." 1;
-        __AF_echo_error109_v0__105_9="$__AF_echo_error109_v0";
-        echo "$__AF_echo_error109_v0__105_9" > /dev/null 2>&1
+        __AF_echo_error109_v0__119_9="$__AF_echo_error109_v0";
+        echo "$__AF_echo_error109_v0__119_9" > /dev/null 2>&1
 fi
     # First argument is the script name
     script_name="${arguments[0]}"
@@ -385,27 +411,31 @@ fi
     # Get the home directory from environment variable
     env_var_get__91_v0 "HOME";
     __AS=$?;
-    __AF_env_var_get91_v0__111_26="${__AF_env_var_get91_v0}";
-    home_dir="${__AF_env_var_get91_v0__111_26}"
+    __AF_env_var_get91_v0__125_26="${__AF_env_var_get91_v0}";
+    home_dir="${__AF_env_var_get91_v0__125_26}"
     # Check execution mode
     __AMBER_ARRAY_13=("-v" "--version" "version");
     array_contains__120_v0 __AMBER_ARRAY_13[@] "${script_args[0]}";
-    __AF_array_contains120_v0__116_35="$__AF_array_contains120_v0";
+    __AF_array_contains120_v0__130_35="$__AF_array_contains120_v0";
     starts_with__20_v0 "${script_name}" "${home_dir}""/.local/bin";
-    __AF_starts_with20_v0__124_39="$__AF_starts_with20_v0";
-    if [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains120_v0__116_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    __AF_starts_with20_v0__142_39="$__AF_starts_with20_v0";
+    if [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains120_v0__130_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo "${__0_VERSION}"
+elif [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${script_args[0]}" != "_uninstall" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        uninstall__161_v0 "${home_dir}";
+        __AF_uninstall161_v0__135_13="$__AF_uninstall161_v0";
+        echo "$__AF_uninstall161_v0__135_13" > /dev/null 2>&1
 elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${home_dir}" != "_" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again." 1;
-        __AF_echo_error109_v0__121_13="$__AF_echo_error109_v0";
-        echo "$__AF_echo_error109_v0__121_13" > /dev/null 2>&1
-elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__124_39" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-        install__159_v0 "${home_dir}";
-        __AF_install159_v0__125_13="$__AF_install159_v0";
-        echo "$__AF_install159_v0__125_13" > /dev/null 2>&1
+        __AF_echo_error109_v0__139_13="$__AF_echo_error109_v0";
+        echo "$__AF_echo_error109_v0__139_13" > /dev/null 2>&1
+elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__142_39" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        install__160_v0 "${home_dir}";
+        __AF_install160_v0__143_13="$__AF_install160_v0";
+        echo "$__AF_install160_v0__143_13" > /dev/null 2>&1
 else
         echo_info__106_v0 "Entering Normal Execution Mode...";
-        __AF_echo_info106_v0__129_13="$__AF_echo_info106_v0";
-        echo "$__AF_echo_info106_v0__129_13" > /dev/null 2>&1
+        __AF_echo_info106_v0__147_13="$__AF_echo_info106_v0";
+        echo "$__AF_echo_info106_v0__147_13" > /dev/null 2>&1
         echo "Usage: ${__2_NAME} [options]"
 fi

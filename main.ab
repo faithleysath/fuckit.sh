@@ -1,4 +1,4 @@
-const VERSION = "0.1.1"
+const VERSION = "0.1.0"
 const LANG = "en"
 const NAME = "fuck"
 // const URL = "https://fuckit.sh"
@@ -21,7 +21,7 @@ $
 import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
 import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
-import { dir_exists, dir_create, file_chmod } from "std/fs"
+import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
 import { file_download } from "std/http"
 
 fun compare_versions(v1: Text, v2: Text): Num? {
@@ -54,7 +54,7 @@ fun install(home_dir: Text): Null {
     else {
         let comparison = compare_versions(current_version, VERSION) failed : let comparison = -1
         if comparison == -1 :
-            echo_warning("A new version ({VERSION}) is available. Your current version is {current_version}. Updating...")
+            echo_warning("A new version ({VERSION}) is available. Your current version is {current_version}. Upgrading...")
         else {
             echo_info("You are already using the latest version ({current_version}).")
             exit 0
@@ -99,6 +99,20 @@ fun install(home_dir: Text): Null {
     }
 }
 
+fun uninstall(home_dir: Text): Null {
+    let bin_path = home_dir + "/.local/bin/" + NAME
+    if file_exists(bin_path) {
+        echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
+        $ rm {bin_path} $ failed {
+            echo_error("Failed to remove '{bin_path}'. Please check permissions.")
+            exit 1
+        }
+        echo_success("fuckit.sh uninstalled successfully.")
+    } else {
+        echo_warning("fuckit.sh is not installed, nothing to do.")
+    }
+}
+
 main (arguments) {
     // Handle zero arguments case (although this should not happen)
     if len(arguments) < 1 :
@@ -115,6 +129,10 @@ main (arguments) {
         // Print Version (Highest Priority)
         len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]) :
             echo VERSION
+
+        // Uninstall
+        len(script_args) == 1 and script_args[0] == "uninstall" :
+            uninstall(home_dir)
 
         // Guard for HOME variable during install attempt
         len(script_args) == 0 and home_dir == "" :
