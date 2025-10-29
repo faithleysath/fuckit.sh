@@ -29,6 +29,18 @@ $ command -v jq > /dev/null 2>&1 $ failed {
     trust $ echo "  - Manual Download: https://github.com/jqlang/jq/releases" >&2 $
     exit 1
 }
+// check curl
+$ command -v curl > /dev/null 2>&1 $ failed {
+    trust $ echo -e "\\033[0;31mDependency check failed: 'curl' command not found. Please install 'curl' and try again.\\033[0m" >&2 $
+    trust $ echo "  - Debian/Ubuntu: sudo apt-get install curl" >&2 $
+    trust $ echo "  - RedHat/CentOS: sudo yum install curl" >&2 $
+    trust $ echo "  - Fedora:        sudo dnf install curl" >&2 $
+    trust $ echo "  - Arch Linux:    sudo pacman -S curl" >&2 $
+    trust $ echo "  - openSUSE:      sudo zypper install curl" >&2 $
+    trust $ echo "  - Alpine:        apk add curl" >&2 $
+    trust $ echo "  - MacOS (Homebrew): brew install curl" >&2 $
+    exit 1
+}
 
 import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
 import { starts_with, split, parse_number } from "std/text"
