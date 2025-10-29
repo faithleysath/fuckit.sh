@@ -24,6 +24,11 @@ import { array_contains } from "std/array"
 import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
 import { file_download } from "std/http"
 
+// Get the home directory from environment variable
+let home_dir = trust env_var_get("HOME")
+if home_dir == "" :
+    echo_error("Critical error: HOME environment variable is not set. Try 'export HOME=~' and run again.")
+
 fun compare_versions(v1: Text, v2: Text): Num? {
     let parts1 = split(v1, ".")
     let parts2 = split(v2, ".")
@@ -45,7 +50,7 @@ fun compare_versions(v1: Text, v2: Text): Num? {
     return 0
 }
 
-fun install(home_dir: Text): Null {
+fun install(): Null {
     // First, check if already installed, just check version command directly
     let current_version = $ {NAME} --version 2> /dev/null $ failed : let current_version = ""
 
@@ -73,10 +78,10 @@ fun install(home_dir: Text): Null {
     let path_env = trust env_var_get("PATH")
     // Step3: Download the script and place it in bin_dir
     echo_info("Downloading 'fuckit.sh' to '{bin_dir}'...(via {URL})")
-    if not file_download(URL, bin_path) :
+    if not file_download(URL, bin_path):
         echo_error("No Avaliable CLI Tools Found, Need curl, wget or aria2c.")
     // Step4: Make it executable
-    if not file_chmod(bin_path, "+x") :
+    if not file_chmod(bin_path, "+x"):
         echo_error("Failed to set executable permission on '{bin_path}'.")
     // Step5: Verify installation
     let installed_version = $ {bin_path} --version 2> /dev/null $ failed : let installed_version = ""
@@ -99,7 +104,7 @@ fun install(home_dir: Text): Null {
     }
 }
 
-fun uninstall(home_dir: Text): Null {
+fun uninstall(): Null {
     let bin_path = home_dir + "/.local/bin/" + NAME
     if file_exists(bin_path) {
         echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
@@ -117,32 +122,24 @@ main (arguments) {
     let script_name = arguments[0]
     // Remaining arguments are passed to the script
     let script_args = arguments[1..len(arguments)]
-    // Get the home directory from environment variable
-    let home_dir = trust env_var_get("HOME")
 
     // Check execution mode
     if {
         // Print Version (Highest Priority)
-        len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]) :
+        len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]):
             echo VERSION
 
         // Uninstall
-        len(script_args) == 1 and script_args[0] == "uninstall" {
-            if home_dir == "" :
-                echo_error("Uninstall failed: HOME environment variable is not set.")
-            else :
-                uninstall(home_dir)
-        }
+        len(script_args) == 1 and script_args[0] == "uninstall" :
+            uninstall()
 
-        // Install / Upgrade / Usage
-        len(script_args) == 0 {
-            if home_dir == "" :
-                echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
-            if not starts_with(script_name, home_dir + "/.local/bin") :
-                install(home_dir)
-            else :
-                echo "hi"
-        }
+        // Install / Upgrade
+        len(script_args) == 0 and not starts_with(script_name, home_dir + "/.local/bin"):
+            install()
+
+        // Usage
+        len(script_args) == 0 and starts_with(script_name, home_dir + "/.local/bin"):
+            echo "hi"
 
         // Default case: Normal execution
         else {
