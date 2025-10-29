@@ -1,4 +1,7 @@
-// Check for dependencies first
+const VERSION = "0.1.0"
+const LANG = "en"
+
+// Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
 let _ = trust $
 if ! command -v bc > /dev/null 2>&1; then
     echo -e "\\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\\033[0m" >&2
@@ -16,9 +19,6 @@ import { env_var_get, echo_error, echo_warning, echo_info } from "std/env"
 import { starts_with } from "std/text"
 import { array_contains } from "std/array"
 
-const VERSION = "0.1.0"
-const LANG = "en"
-
 fun install(home_dir: Text): Null {
     echo_info("Entering Install Mode...")
 }
@@ -32,17 +32,18 @@ main (arguments) {
     // Remaining arguments are passed to the script
     let script_args = arguments[1..len(arguments)]
     // Get the home directory from environment variable
-    let home_dir = env_var_get("HOME") failed {
+    let home_dir = trust env_var_get("HOME")
+    if home_dir == "" :
         echo_warning("HOME environment variable is not set. Install Mode disabled.")
-    }
+
     // Check if entering install mode or normal execution
     if {
         // Condition 1: Entering Installation Mode
         // We must check home_dir is not null *before* using it.
-        len(script_args) == 0 and home_dir is Text and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir)
+        len(script_args) == 0 and home_dir != "" and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir)
 
         // Condition 2: HOME not set during an install attempt
-        len(script_args) == 0 and home_dir is Null :
+        len(script_args) == 0 and home_dir == "" :
             echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
 
         // Print Version

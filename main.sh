@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.4.0-alpha
-# date: 2025-10-29 15:02:03
+# date: 2025-10-29 15:14:52
 starts_with__20_v0() {
     local text=$1
     local prefix=$2
@@ -84,7 +84,9 @@ array_contains__117_v0() {
     __AF_array_contains117_v0=$(echo ${result} '>=' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//');
     return 0
 }
-# Check for dependencies first
+__0_VERSION="0.1.0"
+__1_LANG="en"
+# Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
 __AMBER_VAL_5=$(
 if ! command -v bc > /dev/null 2>&1; then
     echo -e "\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\033[0m" >&2
@@ -98,9 +100,7 @@ if ! command -v bc > /dev/null 2>&1; then
 fi
 );
 __AS=$?;
-__0__="${__AMBER_VAL_5}"
-__1_VERSION="0.1.0"
-__2_LANG="en"
+__2__="${__AMBER_VAL_5}"
 install__125_v0() {
     local home_dir=$1
     echo_info__106_v0 "Entering Install Mode...";
@@ -126,32 +126,32 @@ fi
     # Get the home directory from environment variable
     env_var_get__91_v0 "HOME";
     __AS=$?;
-if [ $__AS != 0 ]; then
+    __AF_env_var_get91_v0__35_26="${__AF_env_var_get91_v0}";
+    home_dir="${__AF_env_var_get91_v0__35_26}"
+    if [ $([ "_${home_dir}" != "_" ]; echo $?) != 0 ]; then
         echo_warning__108_v0 "HOME environment variable is not set. Install Mode disabled.";
-        __AF_echo_warning108_v0__36_9="$__AF_echo_warning108_v0";
-        echo "$__AF_echo_warning108_v0__36_9" > /dev/null 2>&1
-fi;
-    __AF_env_var_get91_v0__35_20="${__AF_env_var_get91_v0}";
-    home_dir="${__AF_env_var_get91_v0__35_20}"
+        __AF_echo_warning108_v0__37_9="$__AF_echo_warning108_v0";
+        echo "$__AF_echo_warning108_v0__37_9" > /dev/null 2>&1
+fi
     # Check if entering install mode or normal execution
     starts_with__20_v0 "${script_name}" "${home_dir}""/.local/bin";
-    __AF_starts_with20_v0__42_60="$__AF_starts_with20_v0";
+    __AF_starts_with20_v0__43_58="$__AF_starts_with20_v0";
     __AMBER_ARRAY_9=("-v" "--version" "version");
     array_contains__117_v0 __AMBER_ARRAY_9[@] "${script_args[0]}";
-    __AF_array_contains117_v0__49_35="$__AF_array_contains117_v0";
-    if [ $(echo $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__42_60" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+    __AF_array_contains117_v0__50_35="$__AF_array_contains117_v0";
+    if [ $(echo $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${home_dir}" == "_" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__43_58" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         install__125_v0 "${home_dir}";
-        __AF_install125_v0__42_113="$__AF_install125_v0";
-        echo "$__AF_install125_v0__42_113" > /dev/null 2>&1
-elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        __AF_install125_v0__43_111="$__AF_install125_v0";
+        echo "$__AF_install125_v0__43_111" > /dev/null 2>&1
+elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${home_dir}" != "_" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again." 1;
-        __AF_echo_error109_v0__46_13="$__AF_echo_error109_v0";
-        echo "$__AF_echo_error109_v0__46_13" > /dev/null 2>&1
-elif [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains117_v0__49_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-        echo "${__1_VERSION}"
+        __AF_echo_error109_v0__47_13="$__AF_echo_error109_v0";
+        echo "$__AF_echo_error109_v0__47_13" > /dev/null 2>&1
+elif [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains117_v0__50_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        echo "${__0_VERSION}"
 else
         echo_info__106_v0 "Entering Normal Execution Mode...";
-        __AF_echo_info106_v0__54_13="$__AF_echo_info106_v0";
-        echo "$__AF_echo_info106_v0__54_13" > /dev/null 2>&1
+        __AF_echo_info106_v0__55_13="$__AF_echo_info106_v0";
+        echo "$__AF_echo_info106_v0__55_13" > /dev/null 2>&1
         # Call normal execution function, e.g., execute(script_args)
 fi
