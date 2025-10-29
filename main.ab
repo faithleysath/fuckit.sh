@@ -1,21 +1,26 @@
+import { env_var_get, echo_error, echo_warning, echo_info, is_command } from "std/env"
 import { starts_with } from "std/text"
-import { env_var_get, echo_error, echo_warning } from "std/env"
+import { array_contains } from "std/array"
 
 const VERSION = "0.1.0"
+const LANG = "en"
 
-fun install(home_dir: Text, script_name: Text) {
-    echo("Installing to home directory: " + home_dir)
-    // Installation logic goes here
+// Check for dependencies first
+if not is_command("bc") :
+    echo_error("Dependency check failed: 'bc' command not found. Please install 'bc' and try again.\nFor Debian/Ubuntu: sudo apt-get install bc\nFor RedHat/CentOS: sudo yum install bc")
+
+fun install(home_dir: Text): Null {
+    echo_info("Entering Install Mode...")
 }
 
-main (args) {
+main (arguments) {
     // Handle zero arguments case (although this should not happen)
-    if len(args) < 1 :
+    if len(arguments) < 1 :
         echo_error("Oops, no arguments provided! It should not happen. But it did. Please visit https://fuckit.sh and report this issue.")
     // First argument is the script name
-    let script_name = args[0]
+    let script_name = arguments[0]
     // Remaining arguments are passed to the script
-    let script_args = args[1..len(args)]
+    let script_args = arguments[1..len(arguments)]
     // Get the home directory from environment variable
     let home_dir = env_var_get("HOME") failed {
         echo_warning("HOME environment variable is not set. Install Mode disabled.")
@@ -24,16 +29,19 @@ main (args) {
     if {
         // Condition 1: Entering Installation Mode
         // We must check home_dir is not null *before* using it.
-        len(script_args) == 0 and home_dir != null and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir, script_name)
+        len(script_args) == 0 and home_dir is Text and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir)
 
         // Condition 2: HOME not set during an install attempt
-        len(script_args) == 0 and home_dir == null {
-            echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=path/to/your/home' and run again.")
-        }
+        len(script_args) == 0 and home_dir is Null :
+            echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
+
+        // Print Version
+        len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]) :
+            echo VERSION
 
         // Default case: Normal execution
         else {
-            echo("Entering Normal Execution Mode...")
+            echo_info("Entering Normal Execution Mode...")
             // Call normal execution function, e.g., execute(script_args)
         }
     }
