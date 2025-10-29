@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Written in [Amber](https://amber-lang.com/)
 # version: 0.4.0-alpha
-# date: 2025-10-29 15:14:52
+# date: 2025-10-29 15:34:31
 starts_with__20_v0() {
     local text=$1
     local prefix=$2
@@ -41,20 +41,12 @@ echo_info__106_v0() {
     __AF_printf99_v0__147_5="$__AF_printf99_v0";
     echo "$__AF_printf99_v0__147_5" > /dev/null 2>&1
 }
-echo_warning__108_v0() {
-    local message=$1
-    __AMBER_ARRAY_3=("${message}");
-    printf__99_v0 "\x1b[1;3;97;43m%s\x1b[0m
-" __AMBER_ARRAY_3[@];
-    __AF_printf99_v0__157_5="$__AF_printf99_v0";
-    echo "$__AF_printf99_v0__157_5" > /dev/null 2>&1
-}
 echo_error__109_v0() {
     local message=$1
     local exit_code=$2
-    __AMBER_ARRAY_4=("${message}");
+    __AMBER_ARRAY_3=("${message}");
     printf__99_v0 "\x1b[1;3;97;41m%s\x1b[0m
-" __AMBER_ARRAY_4[@];
+" __AMBER_ARRAY_3[@];
     __AF_printf99_v0__162_5="$__AF_printf99_v0";
     echo "$__AF_printf99_v0__162_5" > /dev/null 2>&1
     if [ $(echo ${exit_code} '>' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
@@ -86,8 +78,9 @@ array_contains__117_v0() {
 }
 __0_VERSION="0.1.0"
 __1_LANG="en"
+__2_NAME="fuck"
 # Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
-__AMBER_VAL_5=$(
+__AMBER_VAL_4=$(
 if ! command -v bc > /dev/null 2>&1; then
     echo -e "\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\033[0m" >&2
     echo "  - Debian/Ubuntu: sudo apt-get install bc" >&2
@@ -100,19 +93,24 @@ if ! command -v bc > /dev/null 2>&1; then
 fi
 );
 __AS=$?;
-__2__="${__AMBER_VAL_5}"
+__3__="${__AMBER_VAL_4}"
 install__125_v0() {
     local home_dir=$1
-    echo_info__106_v0 "Entering Install Mode...";
-    __AF_echo_info106_v0__23_5="$__AF_echo_info106_v0";
-    echo "$__AF_echo_info106_v0__23_5" > /dev/null 2>&1
+    local bin_path="${home_dir}""/.local/bin/""${__2_NAME}"
+    # First, check if already installed, just check version command directly
+    __AMBER_VAL_5=$( ${__2_NAME} --version );
+    __AS=$?;
+if [ $__AS != 0 ]; then
+        local current_version=""
+fi;
+    local current_version="${__AMBER_VAL_5}"
 }
 declare -r arguments=("$0" "$@")
     # Handle zero arguments case (although this should not happen)
     if [ $(echo "${#arguments[@]}" '<' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "Oops, no arguments provided"'!'" It should not happen. But it did. Please visit https://fuckit.sh and report this issue." 1;
-        __AF_echo_error109_v0__29_9="$__AF_echo_error109_v0";
-        echo "$__AF_echo_error109_v0__29_9" > /dev/null 2>&1
+        __AF_echo_error109_v0__32_9="$__AF_echo_error109_v0";
+        echo "$__AF_echo_error109_v0__32_9" > /dev/null 2>&1
 fi
     # First argument is the script name
     script_name="${arguments[0]}"
@@ -126,32 +124,27 @@ fi
     # Get the home directory from environment variable
     env_var_get__91_v0 "HOME";
     __AS=$?;
-    __AF_env_var_get91_v0__35_26="${__AF_env_var_get91_v0}";
-    home_dir="${__AF_env_var_get91_v0__35_26}"
-    if [ $([ "_${home_dir}" != "_" ]; echo $?) != 0 ]; then
-        echo_warning__108_v0 "HOME environment variable is not set. Install Mode disabled.";
-        __AF_echo_warning108_v0__37_9="$__AF_echo_warning108_v0";
-        echo "$__AF_echo_warning108_v0__37_9" > /dev/null 2>&1
-fi
-    # Check if entering install mode or normal execution
-    starts_with__20_v0 "${script_name}" "${home_dir}""/.local/bin";
-    __AF_starts_with20_v0__43_58="$__AF_starts_with20_v0";
+    __AF_env_var_get91_v0__38_26="${__AF_env_var_get91_v0}";
+    home_dir="${__AF_env_var_get91_v0__38_26}"
+    # Check execution mode
     __AMBER_ARRAY_9=("-v" "--version" "version");
     array_contains__117_v0 __AMBER_ARRAY_9[@] "${script_args[0]}";
-    __AF_array_contains117_v0__50_35="$__AF_array_contains117_v0";
-    if [ $(echo $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${home_dir}" == "_" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__43_58" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-        install__125_v0 "${home_dir}";
-        __AF_install125_v0__43_111="$__AF_install125_v0";
-        echo "$__AF_install125_v0__43_111" > /dev/null 2>&1
+    __AF_array_contains117_v0__43_35="$__AF_array_contains117_v0";
+    starts_with__20_v0 "${script_name}" "${home_dir}""/.local/bin";
+    __AF_starts_with20_v0__51_39="$__AF_starts_with20_v0";
+    if [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains117_v0__43_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        echo "${__0_VERSION}"
 elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $([ "_${home_dir}" != "_" ]; echo $?) | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
         echo_error__109_v0 "Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again." 1;
-        __AF_echo_error109_v0__47_13="$__AF_echo_error109_v0";
-        echo "$__AF_echo_error109_v0__47_13" > /dev/null 2>&1
-elif [ $(echo $(echo "${#script_args[@]}" '==' 1 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' "$__AF_array_contains117_v0__50_35" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
-        echo "${__0_VERSION}"
+        __AF_echo_error109_v0__48_13="$__AF_echo_error109_v0";
+        echo "$__AF_echo_error109_v0__48_13" > /dev/null 2>&1
+elif [ $(echo $(echo "${#script_args[@]}" '==' 0 | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') '&&' $(echo  '!' "$__AF_starts_with20_v0__51_39" | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') | bc -l | sed '/\./ s/\.\{0,1\}0\{1,\}$//') != 0 ]; then
+        install__125_v0 "${home_dir}";
+        __AF_install125_v0__52_13="$__AF_install125_v0";
+        echo "$__AF_install125_v0__52_13" > /dev/null 2>&1
 else
         echo_info__106_v0 "Entering Normal Execution Mode...";
-        __AF_echo_info106_v0__55_13="$__AF_echo_info106_v0";
-        echo "$__AF_echo_info106_v0__55_13" > /dev/null 2>&1
+        __AF_echo_info106_v0__56_13="$__AF_echo_info106_v0";
+        echo "$__AF_echo_info106_v0__56_13" > /dev/null 2>&1
         # Call normal execution function, e.g., execute(script_args)
 fi

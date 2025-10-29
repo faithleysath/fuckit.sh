@@ -1,5 +1,6 @@
 const VERSION = "0.1.0"
 const LANG = "en"
+const NAME = "fuck"
 
 // Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
 let _ = trust $
@@ -16,11 +17,52 @@ fi
 $
 
 import { env_var_get, echo_error, echo_warning, echo_info } from "std/env"
-import { starts_with } from "std/text"
+import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
 
+fun compare_versions(v1: Text, v2: Text): Num? {
+    let parts1 = split(v1, ".")
+    let parts2 = split(v2, ".")
+
+    let len1 = len(parts1)
+    let len2 = len(parts2)
+
+    let max_len = len1 > len2 then len1 else len2
+
+    for i in 0..max_len {
+        // If part is missing, treat it as 0
+        let num1 = i < len1 then parse_number(parts1[i])? else 0
+        let num2 = i < len2 then parse_number(parts2[i])? else 0
+
+
+        if num1 > num2 : return 1
+        if num1 < num2 : return -1
+    }
+
+    return 0
+}
+
 fun install(home_dir: Text): Null {
-    echo_info("Entering Install Mode...")
+    let bin_path = home_dir + "/.local/bin/" + NAME
+
+    // First, check if already installed, just check version command directly
+    let current_version = $ {NAME} --version $ failed : let current_version = ""
+
+    if current_version == "" :
+        echo_info("fuckit.sh is not installed. Installing now...")
+    else {
+        let comparison = compare_versions(current_version, VERSION) failed : let comparison = -1
+        if comparison == -1 :
+            echo_info("A new version ({VERSION}) is available. Your current version is {current_version}. Updating...")
+        else {
+            echo_info("You are already using the latest version ({current_version}).")
+            exit 0
+        }
+    }
+
+    // Installation / Update process (they are the same here)
+    // Step1: Check if the dir exsist
+    
 }
 
 main (arguments) {
@@ -33,22 +75,20 @@ main (arguments) {
     let script_args = arguments[1..len(arguments)]
     // Get the home directory from environment variable
     let home_dir = trust env_var_get("HOME")
-    if home_dir == "" :
-        echo_warning("HOME environment variable is not set. Install Mode disabled.")
 
-    // Check if entering install mode or normal execution
+    // Check execution mode
     if {
-        // Condition 1: Entering Installation Mode
-        // We must check home_dir is not null *before* using it.
-        len(script_args) == 0 and home_dir != "" and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir)
+        // Print Version (Highest Priority)
+        len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]) :
+            echo VERSION
 
-        // Condition 2: HOME not set during an install attempt
+        // Guard for HOME variable during install attempt
         len(script_args) == 0 and home_dir == "" :
             echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
 
-        // Print Version
-        len(script_args) == 1 and array_contains(["-v", "--version", "version"], script_args[0]) :
-            echo VERSION
+        // Installation Mode
+        len(script_args) == 0 and not starts_with(script_name, home_dir + "/.local/bin") : 
+            install(home_dir)
 
         // Default case: Normal execution
         else {
