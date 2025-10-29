@@ -1,6 +1,7 @@
 const VERSION = "0.1.0"
 const LANG = "en"
 const NAME = "fuck"
+const URL = "https://fuckit.sh"
 
 // Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
 let _ = trust $
@@ -16,9 +17,11 @@ if ! command -v bc > /dev/null 2>&1; then
 fi
 $
 
-import { env_var_get, echo_error, echo_warning, echo_info } from "std/env"
+import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
 import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
+import { dir_exists, dir_create, file_chmod } from "std/fs"
+import { file_download } from "std/http"
 
 fun compare_versions(v1: Text, v2: Text): Num? {
     let parts1 = split(v1, ".")
@@ -43,8 +46,6 @@ fun compare_versions(v1: Text, v2: Text): Num? {
 }
 
 fun install(home_dir: Text): Null {
-    let bin_path = home_dir + "/.local/bin/" + NAME
-
     // First, check if already installed, just check version command directly
     let current_version = $ {NAME} --version $ failed : let current_version = ""
 
@@ -61,8 +62,41 @@ fun install(home_dir: Text): Null {
     }
 
     // Installation / Update process (they are the same here)
-    // Step1: Check if the dir exsist
-    
+    // Step1: Check if the dir exists
+    let bin_dir = home_dir + "/.local/bin"
+    let bin_path = bin_dir + "/" + NAME
+    if not dir_exists(bin_dir) {
+        echo_info("Directory '{bin_dir}' does not exist. Creating it...")
+        dir_create(bin_dir) failed : echo_error("Failed to create directory '{bin_dir}'.")
+    }
+    // Step2: Check if bin_dir is in PATH
+    let path_env = trust env_var_get("PATH")
+    // Step3: Download the script and place it in bin_dir
+    echo_info("Downloading 'fuckit.sh' to '{bin_dir}'...(via {URL})")
+    if not file_download(URL, bin_path) :
+        echo_error("No Avaliable CLI Tools Found, Need curl, wget or aria2c.")
+    // Step4: Make it executable
+    if not file_chmod(bin_path, "+x") :
+        echo_error("Failed to set executable permission on '{bin_path}'.")
+    // Step5: Verify installation
+    let installed_version = $ {bin_path} --version $ failed : let installed_version = ""
+    if installed_version == "" : {
+        echo "Verbose Information:"
+        echo "  - Home Directory: {home_dir}"
+        echo "  - Binary Path: {bin_path}"
+        echo "  - Target Version: {VERSION}"
+        echo "  - Current Version: {current_version}"
+        echo "  - Installed Version: {installed_version}"
+        echo "  - PATH: {path_env}"
+        echo_error("Installation failed: Unable to verify installation.(It means executing '{bin_path} --version' did not return any output or failed.) Please check the above information and try again.")
+    } else :
+        echo_success("fuckit.sh version {installed_version} installed successfully at '{bin_path}'!")
+    // Step6: Warn if bin_dir is not in PATH
+    if path_env != "" and not array_contains(split(path_env, ":"), bin_dir) {
+        echo_warning("Warning: '{bin_dir}' is not in your PATH environment variable. You may need to add it manually to run 'fuckit.sh' easily.")
+        echo_info("You can add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc):")
+        echo_info("export PATH=\"{bin_dir}:\$PATH\"")
+    }
 }
 
 main (arguments) {
