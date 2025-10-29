@@ -1,0 +1,3707 @@
+--- ./0.4.0-alpha/basic_syntax/loops.md ---
+Amber supports two types of loop:
+- **Infinite** loop that can only be broken with a `break` keyword
+- **Iterator** loop that iterates over an array
+
+Within loops, the `break` and `continue` keywords can be used to control the flow of execution effectively.
+
+## Infinite Loop
+
+An infinite loop executes its code repeatedly without end until a `break` statement is used to exit the loop.
+
+```ab
+let i = 0
+let sum = 0
+loop {
+    if i == 5:
+        break
+    i += 1
+    sum += i
+}
+echo sum
+// Outputs: 15
+```
+
+## Iterator Loop
+
+It's the most encouraged way to iterate over an array. The example in the previous chapter can be rewritten to a more concise version:
+
+```ab
+let sum = 0
+for i in 0..5 {
+    sum += i
+}
+echo sum
+// Outputs: 10
+```
+
+Here is another example showing iterator loop in action:
+
+```ab
+let files = ["config.json", "file.txt", "audio.mp3"]
+
+for index, file in files {
+    $ mv {file} {index}{file} $ failed {
+        echo "Failed to rename {file}"
+    }
+}
+```
+
+The above example will iterate through all the files in the array and index them according to their order in the array. As a result, these files will be renamed to `0config.json`, `1file.txt`, and `2audio.mp3`.
+--- ./0.4.0-alpha/basic_syntax/conditions.md ---
+There are three ways to perform conditional logic:
+- **If Statement** - This is a regular if statement that can be used anywhere
+- **If Chain** - This is _syntactical sugar_ for pesky if-else chained together.
+- **Ternary Expression** - This is a way to represent conditional logic within an expression.
+
+## If Statement
+
+The good old if statement that one may recognize from other modern programming languages:
+
+```ab
+if age >= 16 {
+    echo "Welcome"
+}
+```
+
+Let's add an `else` branch to the mix
+
+```ab
+if age >= 16 {
+    echo "Welcome"
+} else {
+    echo "Entry not allowed"
+}
+```
+
+In Amber, a simple if condition can often feel unnecessarily bulky. To address this, Amber allows the use of a `:` symbol to replace a full block when you only need to write a single statement. This feature is especially useful for handling multiple conditions with concise, single-statement actions.
+
+```ab
+if age >= 16: echo "Welcome"
+else: echo "Entry not allowed"
+
+// Or
+
+if age >= 16:
+    echo "Welcome"
+else:
+    echo "Entry not allowed"
+```
+
+## If Chain
+
+The if-chain is a streamlined approach for handling a sequence of if-else conditions. Here’s an example to illustrate this concept:
+
+```ab
+if {
+    drink == "water" {
+        echo "Have a natural, mineralized water"
+    }
+    drink == "cola" {
+        echo "Here is your fresh cola"
+    }
+    else {
+        echo "Sorry, we have none of that"
+    }
+}
+
+// Compact alternative:
+
+if {
+    drink == "water": echo "Have a natural, mineralized water"
+    drink == "cola": echo "Here is your fresh cola"
+    else: echo "Sorry, we have none of that"
+}
+```
+
+Instead of using the traditional nested if-else structure:
+
+```ab
+if drink == "water" {
+    echo "Have a natural, mineralized water"
+} else {
+    if drink == "cola" {
+        echo "Here is your fresh cola"
+    } else {
+        echo "Sorry, we have none of that"
+    }
+}
+```
+
+The if-chain offers a cleaner, more concise, and readable way to handle multiple conditions.
+
+## Ternary Expression
+
+Ternary expressions are ideal for quickly assigning values based on simple conditions. They provide a compact and efficient alternative to traditional conditional statements. Here’s an example:
+
+```ab
+let candy = count > 1
+    then "candies"
+    else "candy"
+
+echo "I have {count} {candy}"
+```
+
+To achieve an even more compact form, the ternary expression can be written inline when the expressions involved are concise.
+
+```ab
+let candy = count > 1 then "candies" else "candy"
+```
+
+This approach makes code concise and readable, especially for straightforward conditional assignments.
+--- ./0.4.0-alpha/basic_syntax/commands.md ---
+The only way to access the bash shell is through Amber's commands. Commands can be used in the form of a statement or an expression.
+
+Commands can sometimes _fail_, so it’s important for whoever uses them to be ready to handle what happens next. There are different ways to deal with failures, each with its own pros and cons:
+- `failed` - the recommended way to handle failing that enables you to write some specific logic to run when a command fails
+- `?` - this shorthand for propagating the failure to the caller. This operator can only be used in a `main` block or inside of a function.
+- `trust` - the discouraged way to handle failing. This modifier will treat commands as if they have completed successfully and will allow them to be parsed without any further steps.
+
+Here is an example use:
+
+```ab
+// Command statement
+$ mv file.txt dest.txt $ failed {
+    echo "It seems that the file.txt does not exist"
+}
+
+// Command expression
+let result = $ cat file.txt | grep "READY" $ failed {
+    echo "Failed to read the file"
+}
+echo result
+```
+
+> DETAILS: Command expression result is sent to the variable instead of _standard output_.
+
+Command expression can also be interpolated with other expressions and variables
+
+```ab
+let file_path = "/path/to/file"
+$ cat {file_path} $ failed {
+    echo "Could not open '{file_path}'"
+}
+```
+
+## Getting the Exit Code
+
+In order to get the exit code, you can use the `status` keyword. It will always return you the exit code of the last bash command or *failable function*.
+
+```ab
+let file_path = "/path/to/file"
+$ cat {file_path} $ failed {
+    echo "Error! Exit code: {status}"
+}
+echo "The status code is: {status}"
+```
+
+## Failure Propagation
+
+In order to propagate failure to the context above, you can simply use the question mark syntax `?`.
+
+Here is an example:
+
+```ab
+$ test -d /path/to/file $?
+// Which is the same as
+
+$ test -d /path/to/file $ failed {
+    fail status
+}
+```
+
+To learn more about fail keyword, please read the article covering [failures](/basic_syntax/functions#failing).
+
+# Command Modifiers
+
+Command modifier is a keyword that alters the behavior of a command. Here are some examples:
+- `silent` - prevents command from displaying the result to the standard output.
+- `trust` - disables Amber's mechanism that requires user to handle failures.
+
+You can learn more details about each command modifier in the forthcoming chapters.
+
+Here is the example usage of a command modifier:
+
+```ab
+silent trust $ my command $
+```
+
+You can use the command modifiers as modifier scopes. This way you don't have to repeat yourself on multiple commands.
+
+```ab
+silent trust {
+    $ first command $
+    if isReady:
+            $ second command $
+    $ third command $
+}
+```
+
+## Unsafe Command Execution
+
+```ab
+trust $ test -d /path/to/file $
+```
+
+This will be treated the same way Bash treats statements. If it fails, then carry on with the code execution. This behavior is the one that we were trying to avoid when building Amber. The cases when this method is encouraged are the following:
+
+- You are **fully sure** that this command will complete successfully
+- You **do not care** whether the command will fail or not
+
+## Silencing Commands
+
+You can easily silent given command. Here is an example usage:
+
+```ab
+silent $ very loud command $
+```
+--- ./0.4.0-alpha/basic_syntax/importing.md ---
+In Amber, functions can be imported from other files. To make a function accessible externally, it must be declared as public in the file where it is defined.
+
+## Public Functions
+
+To declare a function as public we can use a `pub` keyword. Let's keep in mind that `pub` keyword has to be used before the `fun` keyword that declares our function:
+
+```ab
+pub fun sum(left: Num, right: Num): Num {
+    return left + right
+}
+```
+
+### Importing from Other Files
+
+It's possible to import functions individually.
+
+```ab
+import { foo, bar } from "./my-file.ab"
+
+foo()
+bar()
+```
+
+It's also possible to import all functions at once.
+
+```ab
+import * from "./arith.ab"
+
+echo sum(1, sub(2, mul(4, 5)))
+```
+
+## Public Imports
+
+There are situations where we might need to re-export something we’ve imported. Amber makes this straightforward with the following syntax:
+
+```ab
+pub import * from "my/path/file.ab"
+```
+
+This statement imports all functions defined in file.ab and re-exports them, making them publicly accessible from the current file.
+
+## Main Block
+
+In case when we want a specific code to run only when a file is executed directly, Amber offers a clean and powerful solution. Similar to Python’s approach:
+
+```py
+if __name__ == '__main__':
+    # code to execute
+```
+
+Amber uses a dedicated main scope for this purpose. However, it’s more than just a convenient syntax — it also provides additional functionality. Within the main block, we can use the `?` operator to propagate exit codes directly to the external shell, simplifying error handling.
+
+```ab
+echo "Running indirectly"
+
+main {
+    $ some command $?
+    echo "Running directly"
+}
+```
+
+> DETAILS: Key features of `main` block:
+- Code outside the main block runs regardless of how the file is executed.
+- Code inside the main block runs only when the file is executed directly.
+- The `?` operator ensures that any exit code from a failable command or function call is automatically passed back to the shell, making it easy to handle script results effectively.
+
+Now if we run this file the output will look like this:
+```
+Running indirectly
+Running directly
+```
+
+Here is the behavior when we import the file instead.
+
+```ab
+import * from "./file.ab"
+// Outputs: Running indirectly
+```
+
+
+### Main Block and External Arguments
+
+Main block can provide an array of arguments (that is of type `[Text]`) passed to this script.
+
+```ab
+main (args) {
+    for i, arg in args {
+        echo "{i}: {arg}"
+    }
+}
+```
+--- ./0.4.0-alpha/basic_syntax/arrays.md ---
+# Ranges
+
+Amber gives us the ability to generate an array of numbers `[Num]` of certain range. There are two types of ranges:
+- `a..b` is exclusive from `a` to `b` excluding `b`.
+- `a..=b` is inclusive from `a` to `b` including `b`.
+
+```ab
+echo 0..10
+// Outputs: 0 1 2 3 4 5 6 7 8 9
+echo 0..=10
+// Outputs: 0 1 2 3 4 5 6 7 8 9 10
+```
+
+# Arrays
+
+We learned about array literals in the first chapter. In this chapter we will learn how to make use of them. Arrays are indexed from zero.
+
+To store or retrieve a value at a particular index of an array, we can use the following syntax:
+
+```ab
+let groceries = ["apple", "banana", "cherry", "date"]
+groceries[0] = "kiwi"
+echo groceries[1]
+// Outputs: banana
+```
+
+> WARNING: As of right now (Amber alpha) the subscript syntax does not work with expressions. This means that we can't evaluate expressions like `foo()[0]` yet.
+
+We can also _echo_ an entire array:
+
+```ab
+echo groceries
+// Outputs: kiwi banana cherry date
+```
+
+To retrieve a slice between a pair of indices of an array, we can use an exclusive range `a..b` or inclusive range `a..=b` (see above) with the following syntax:
+
+```ab
+echo groceries[1..3]
+// Outputs: banana cherry
+echo groceries[1..=2]
+// Outputs: banana cherry
+```
+
+> WARNING: It is not currently possible to *replace* a slice of an array. This means that we can't evaluate expressions like `groceries[1..=2] = ["kiwi"]` yet.
+
+To add an element to an array, we can use the mentioned in the [expressions chapter](/basic_syntax/expressions) addition operator to merge two arrays together.
+
+```ab
+let capitals = ["London", "Paris"]
+capitals += ["Warsaw"]
+let cities = capitals + ["Barcelona", "Florence"]
+```
+
+In order to see more operations on the array data type take a look at the standard library documentation which covers functions such as `join`, `len` or `sum`.
+
+## Nested Arrays
+
+We already learned that Bash does not support nesting arrays. But what makes this limitation? The answer is that under the hood Bash defines arrays that essentially only store structures containing string value. You can learn more about Bash arrays by reading [the official source code](https://git.savannah.gnu.org/cgit/bash.git/tree/array.h).
+
+```c
+typedef struct array {
+    arrayind_t max_index;
+    arrayind_t num_elements;
+#ifdef ALT_ARRAY_IMPLEMENTATION
+    arrayind_t first_index;
+    arrayind_t alloc_size;
+    struct array_element **elements;
+#else
+    struct array_element *head;
+    struct array_element *lastref;
+#endif
+} ARRAY;
+
+typedef struct array_element {
+    arrayind_t ind;
+    char *value;
+#ifndef ALT_ARRAY_IMPLEMENTATION
+    struct array_element *next, *prev;
+#endif
+} ARRAY_ELEMENT;
+```
+--- ./0.4.0-alpha/basic_syntax/functions.md ---
+Functions can help you organize the structure of your code into reusable components. Here is how you can declare such function:
+
+```ab
+fun myFunction(arg1, arg2) {
+    let result = arg1 + arg2
+    return result
+}
+
+echo myFunction(2, 3)
+// Outputs: 5
+echo myFunction("Hello", " World")
+// Outputs: Hello World
+```
+
+Function declared in the example above has name `myFunction` and can take two arguments `arg1`, `arg2` of any type.
+
+If you want to declare a function that takes arguments of certain type - you are encouraged to do this. However, for consistency you are required to specify the return type as well
+
+```ab
+fun myFunction(arg1: Num, arg2: Num): Num {
+    let result = arg1 + arg2
+    return result
+}
+```
+
+An interesting fact about functions is that they are not parsed unless they are used. This behavior exists because Amber allows you to omit specifying any type at all. When you use such function - then it generates different variants of this function with types that were used (without any duplications).
+
+On the condition that you specify an argument's type, you can also specify its default value — it will be used if none other is provided when the function is called:
+
+```ab
+fun addition(a: Num, b: Num = 100): Num {
+    return a + b
+}
+
+echo addition(10) // Outputs: 110
+echo addition(10, 20) // Outputs: 30
+```
+Notice that arguments with default values must come after the regular arguments.
+
+## Modifiers
+
+You can apply [Command Modifiers](/basic_syntax/commands) to function calls as well. This way you can suppress any output with `silent` modifier or run _failable_ functions as if they could never fail (although this is unrecommended) with `trust` keyword
+
+## Failing
+
+Functions can additionally fail. We call them _failable_ functions. A failable function is a type of function that can fail. To fail a function use a `fail` keyword and follow it with exit code.
+
+```ab
+fun failing() {
+    fail 1
+}
+```
+
+Here is another example of a failing function:
+
+```ab
+fun failing(name) {
+    $ command $?
+    parse(name)?
+}
+```
+
+Notice that using `?` operator is automatically failing with the `status` code of the failing operation.
+
+If you specify the return type of a failable function, you must also append the `?` to the type name.
+
+```ab
+fun failable(): Num? {
+    if 0 > 5 {
+        fail 1
+    }
+
+    return 1
+}
+```
+
+Note that you cannot force a function to become failable by simply appending the `?` to the return type. The `?` can (and must) only be used in a function declaration, if the function is known to be failable.
+
+## Status Code
+
+Status code contains information about latest failing function or a command that was run. Accessing status is as simple as using `status` keyword.
+
+```ab
+fun safeDivision(a: Num, b: Num): Num {
+    if b == 0:
+        fail 1
+    return a / b
+}
+```
+
+Now let's see how this code will behave in different scenarios:
+
+```ab
+let result = trust safeDivision(24, 4)
+echo "{result}, {status}"
+// Outputs: 6, 0
+```
+This was a happy ending. Now let's see what happens when we divide by zero:
+
+```ab
+let result = safeDivision(15, 0) failed {
+    echo "function Failed"
+    echo status
+}
+// Outputs:
+// function Failed
+// 1
+```
+
+## Variable References `ref`
+
+You have the ability to accept variables passed by reference. To  do this you can use the `ref` keyword.
+
+```ab
+fun push(ref array, value) {
+    array += [value]
+}
+
+let groceries = ["apples", "bananas"]
+push(groceries, "oranges")
+echo groceries
+// Outputs: apples bananas oranges
+```
+
+The behavior of this keyword is pretty similar to `&` in other C-like programming languages.
+
+## Reserved Prefix
+
+The Amber compiler reserves all identifiers starting with double underscore `__` in addition to keywords like `let`, `if`, etc.
+--- ./0.4.0-alpha/basic_syntax/basic_syntax.md ---
+> This documentation assumes a foundational understanding of programming concepts.
+
+Since Amber is designed with a syntax inspired by ECMAScript, some aspects of the programming language may appear familiar.
+
+> We suggest to take a look on [the examples](https://docs.amber-lang.com/by_example/examples) we provide to see real use cases written in Amber.
+
+Here, we may notice an echo built-in function, which performs the same operation as Bash’s echo command.
+
+Here is a code snippet that illustrates certain features of Amber. We will provide detailed explanations for each of these features and cover additional content in the forthcoming chapters.
+
+```ab
+// Define variables
+let name = "John"
+let age = 30
+
+// Display a greeting
+echo "Hello, my name is {name}"
+
+// Perform conditional checks
+if age < 18 {
+    echo "I'm not an adult yet"
+} else {
+    echo "I'm an adult"
+}
+
+// Loop through an array
+let fruits = ["apple", "banana", "cherry", "date"]
+echo "My favorite fruits are:"
+for fruit in fruits {
+    echo fruit
+}
+```
+--- ./0.4.0-alpha/basic_syntax/data_types.md ---
+In Bash there is only one primitive data type, string, which internal implementation is represented by an array of characters `char*`. Amber extends on this data type to introduce a few more.
+
+Amber supports five data types:
+- `Text` - The textual data type. In other programming languages it can also be called "string".
+- `Num` - The numeric data type. It's basically any number.
+- `Bool` - The boolean data type. It's value can be either `true` or `false`.
+- `Null` - The _nothing_ data type.
+- `[]` - The array data type.
+
+## Text
+
+`Text` data type is the most basic data type in Amber. It's just a string of characters and is also stored as a string of characters under the hood.
+
+Text literal in Amber is contained between double quotes. Amber makes sure to prevent content inside from [globbing](https://en.wikipedia.org/wiki/Glob_%28programming%29). This prevents unexpected behaviors from happening.
+
+```ab
+// `Text` literal:
+"Welcome to the jungle"
+```
+
+Just like in other programming languages, characters in `Text` literals can be escaped.
+
+## Number
+
+Under the hood its value is stored as a string of characters - the same way as it's done in Bash. The difference is that Amber applies standard commands to do operations on numbers that support _floating point_ values so that you can simply write operator sign instead.
+
+```ab
+// `Num` data type
+// Can be an integer
+42
+// or a floating point
+-123.456
+```
+
+## Boolean
+
+Boolean values are translated to `0` or `1` numerical values. These values can be easily [cast](/advanced_syntax/as_cast) to numbers `Num`.
+
+```ab
+// `Bool` data type
+true
+false
+```
+
+## Null
+
+```ab
+// `Null` data type
+null
+```
+
+The most common use of this data type is to indicate that a function does not return a value. Currently, there is no practical real-world scenario where using a null literal is necessary, as it serves no functional purpose at this time.
+
+## Array
+
+Arrays in Amber and Bash are dynamically allocated. When creating an array literal it is important to specify of which data type the array should be made. Type signature of arrays can be represented with `[T]` where `T` is the value type that this array holds. Example: an array of type `Num` is `[Num]` (in C like languages it would be `Num[]`).
+
+To create an array literal simply enclose a list of elements separated with a comma `,` with square brackets `[]`.
+
+```ab
+// `[Num]` data type
+[1, 2, 3]
+// `[Text]` data type
+["apple", "banana", "orange"]
+```
+
+In a situation of empty array there is no value that can tell the compiler of what type it is. In this case we can simply use the type signature of it to represent an empty array.
+
+```ab
+// Example of a value that represents empty array of text
+[Text]
+```
+
+> WARNING: Due to the bash's limitations it's pretty hard to implement 2D+ arrays to behave as regular arrays. As of right now Amber does not support nested arrays
+
+```ab
+[[Bool]]
+// Error: Arrays cannot be nested due to the Bash limitations
+```
+--- ./0.4.0-alpha/basic_syntax/variables.md ---
+Variables are the way to store values we discussed earlier. In order to create a variable you can use a `let` keyword. Here is an example:
+
+```ab
+let name = "John"
+```
+
+The above example shows how to initialize a variable. However if you have already created the one you want, you can reassign it just by name (without using any keywords)
+
+```ab
+name = "Rob"
+```
+
+And to access the value stored by this variable - just refer to it by name, like so:
+
+```ab
+echo name // Outputs: "Rob"
+```
+
+> WARNING: The Amber compiler reserves all identifiers starting with double underscore `__` in addition to keywords like `let`, `if`, etc.
+
+## Overshadowing
+
+Variable declarations in Amber can be overshadowed, allowing the redeclaration of an existing variable with a different data type within a specific scope if necessary. Here’s an example:
+
+```ab
+// `result` is a `Num`
+let result = 123
+// `result` is a `Text`
+let result = "Hello my friend"
+```
+
+# Constant
+
+Constant is a type of variable that cannot be modified.
+
+```ab
+const sunrise = "east"
+sunrise = "west" // ERROR: Cannot reassign constant 'sunrise'
+```
+--- ./0.4.0-alpha/basic_syntax/expressions.md ---
+Data type literals can be combined using operators, but these operators only function with values of **the same** data type. For example, attempting to add a `Text` value to a `Num` value will result in an error, as this is an unsupported operation. To combine different types of values into a single text, consider using [string interpolation](/basic_syntax/expressions#text-interpolation) instead.
+
+## Addition Operator `+`
+
+Addition can be performed on number, text and array. This operator applied on different data types yields different results:
+
+- `Num` - Arithmetic sum
+- `Text` - String concatenation
+- `[]` - Array join
+
+```ab
+12 + 42 // 54
+"Hello " + "World!" // "Hello World!"
+[1, 2] + [3, 4] // [1, 2, 3, 4]
+```
+
+## Arithmetic Operations
+
+Arithmetic operations can only be used on `Num` data type. Here is the list of all available ones:
+- `+` Arithmetic sum
+- `-` Substraction
+- `*` Multiplication
+- `/` Division
+- `%` Modulo operation
+
+```ab
+((12 + 34) * 9) % 4
+```
+
+There is also an unary operator that negates the value stored in [variable](/basic_syntax/variables).
+
+```ab
+let value = 12
+echo -value // Outputs: -12
+```
+
+## Comparison Operations
+
+The equality `==` and inequality `!=` operations can be applied to any data type as long as both sides have the same type.
+
+```ab
+"foo" != "bar"
+42 == 42
+true != false
+"equal" == "equal"
+```
+
+The remaining comparison operations can only be used on the `Num` data type. These are basically the same as in other modern programming languages: `>`, `<`, `>=`, `<=`.
+
+```ab
+42 != 24
+```
+
+## Logical Operations
+
+Logical operations can only be used on `Bool` data type. As opposed to C-like family of programming languages we've chosen to go for more Pythonic approach with literal names instead of symbols, as it suits the nature of the scripting programming language better: `and`, `or`, `not`.
+
+```ab
+18 >= 12 and not false
+```
+
+## Shorthand Operator
+
+The addition operator, along with any arithmetic operator combined with the `=` symbol, can be used to automatically update the value of an existing variable with the calculated result.
+
+```ab
+let age = 18
+age += 5
+echo age // Outputs: 23
+```
+
+## Text Interpolation
+
+Text interpolation is a form of embedding various values into the text literal that are combined with their textual representations.
+
+```ab
+echo "State: {false}" // Outputs: "State: 0"
+// It's possible to also nest interpolation
+echo "1 {" 2 {"3"} 4"} 5" // Outputs: "1 2 3 4 5"
+```
+
+In the following table we can see how the interpolation behaves for various data types:
+
+Type  |Description          |Before         |After
+------|---------------------|---------------|---------
+`Text`|Identity             |`"{"Text"}"`   |`"Text"`
+`Num` |Identity             |`"{12.34}"`    |`"12.34"`
+`Bool`|`1` or `0`           |`"{true}"`     |`"1"`
+`[]`  |Spaces between values|`"{[1, 2, 3]}"`|`"1 2 3"`
+
+```ab
+let name = "John"
+let age = 18
+echo "Hi, I'm {name}. I'm {age} years old."
+// Outputs: Hi, I'm John. I'm 18 years old
+```
+--- ./0.4.0-alpha/contribute/contribute.md ---
+Welcome to the Amber Contributing Guidebook! 👋
+
+This guide offers a clear and comprehensive introduction to getting started with contributing to Amber. If you haven’t already, consider joining our [Discord](https://discord.com/invite/cjHjxbsDvZ) community, where you can ask any questions and connect with other contributors.
+
+## Contributing Guidelines
+
+Before you dig into Amber, you should know a few things before you contribute.
+
+Any code change is submitted [through a PR](https://github.com/amber-lang/Amber/pulls), which is then approved by at least 2 maintainers. Each pull request should be directed to the `staging` branch unless there is a specific justification for targeting the `master` branch.
+
+The way we talk on GitHub is not the same as we would talk in person. When on GitHub, always get straight to the point and be critical.
+
+Personal grudges are forbidden around here, as well as anything offtopic or offensive.
+
+### Opening a PR
+
+Before a PR is opened, it usually has an issue about it first, where we discuss how exactly a feature must be implemented, to avoid making a mistake.
+
+It is recommended that you see how features were already implemented. A good example is [#130](https://github.com/amber-lang/Amber/issues/130)
+
+To create a PR, you should fork the repo, create a branch, do your work in there, and open a PR. It will then be reviewed and pushed into master.
+
+The maintainers will check who it is the best reviewer, we suggest to open a ticket reporting the issue before starting to do the PR so we can discuss the implementation.
+
+### Getting Help
+
+Along the way, you may need help with your code. The best way to ask is in [our Discord server](https://discord.com/invite/cjHjxbsDvZ), but you may also ask other contributors personally or post in [Discussions](https://github.com/amber-lang/Amber/discussions).
+
+### Development
+
+Compile Amber with the following instructions:
+
+```
+git clone https://github.com/amber-lang/amber
+cd amber
+cargo build
+```
+
+In order to build the installer scripts run:
+
+```bash
+amber build.ab build.sh
+```
+
+Debugging Amber:
+```bash
+// Shows the AST
+AMBER_DEBUG_PARSER=true cargo run <file.ab>
+// Shows the time it took to compile each phase
+AMBER_DEBUG_TIME=true cargo run <file.ab>
+
+// Flamegraph is a profiling tool that is used to visualize the time each function took to execute
+sudo cargo flamegraph -- <file.ab> <file.sh>
+```
+
+#### Running Tests
+
+Tests modules can be found in [`src/tests`](https://github.com/amber-lang/amber/tree/master/src/tests) where every single module contains multiple testing functions. The exception is for [`stdlib.rs`](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib.rs) and [`validity.rs`](https://github.com/amber-lang/amber/blob/master/src/tests/validity.rs). They keep all the test scenarios in directories `stdlib/` and `validity/` for easier readability and better code organization.
+
+To run ALL tests, run `cargo test`.
+
+If you want to run only tests from a specific module, let's say from [`stdlib.rs`](https://github.com/amber-lang/amber/blob/master/src/tests/stdlib.rs), you can do that by adding the module name to the command: `cargo test stdlib` or `cargo test tests::stdlib::test_stdlib_src_tests_stdlib_extract_ab` to run a single test.
+
+And if there is a specific function, like `function_with_wrong_typed_return()` in [`errors.rs`](https://github.com/amber-lang/amber/blob/master/src/tests/errors.rs), you should add the full path to it: `cargo test errors::function_with_wrong_typed_return`
+
+#### Github Actions
+
+We are using `cargo-dist` to build the binaries for all the platforms. The binaries are then uploaded to the release page once a new release a tag is created.
+--- ./0.4.0-alpha/contribute/compiler.md ---
+# Compiler Information
+
+Here you will find out how the compiler is structured, how the parser works and how to write new syntax modules. Let's begin!
+
+## Lexer
+
+Beforehand the code is transformed into an array of tokens that contain information about:
+- `word` - the token content
+- `pos` - the token location in the document (row, column)
+- `start` - the index in the code string where the token starts
+
+```rs
+struct Token {
+    word: String,
+    pos: (usize, usize),
+    start: usize
+}
+```
+
+Tokens are created with lexical rules that are contained in the [src/rules.rs](https://github.com/amber-lang/amber/blob/master/src/rules.rs) file.
+
+Here is the example of how an array of Amber tokens can look like, where strings represent instances of `Token`:
+```js
+[Token<"let">, Token<"is_alive">, Token<"=">, Token<"true">, ...]
+```
+
+## Parser
+
+Parser takes in Tokens and forms an Abstract Syntax Tree that represents the code written in Amber.
+
+### Syntax Module
+
+What transforms tokens into the AST (Abstract Syntax Tree) is a `SyntaxModule`. It can be a `Text` literal, `echo` builtin or `Add` operator. The `SyntaxModule` is a trait that implements:
+- `parse` method that parses the module and determines whether or not the corresponding token string represents this sytax module. If otherwise, then a `Failure::Quiet` is returned that means that this is not the correct module to parse the tokens. However if this is the correct module but an error is encountered, then `Failure::Loud` is returned with an error (or warning / info) is returned.
+- `new` method that instantiates a new SyntaxModule.
+- `syntax_name!("<name of this module>")` that identifies this syntax module with its name.
+
+The most important method here is `parse` that is defined with the following signature:
+
+```rs
+fn parse(&mut self, meta: &mut M) where M: Metadata -> SyntaxResult;
+```
+
+Parsing returns a `SyntaxResult` that under the hood is represented as `Result<(), Failure>`. It means that parsing can be finished successfully or it can fail returning a `Failure` object.
+
+Here is an example `SyntaxModule` that parses `Bool` literal:
+```rs
+impl SyntaxModule<ParserMetadata> for Bool {
+    syntax_name!("Bool");
+
+    fn new() -> Self {
+        Bool {
+            value: false
+        }
+    }
+
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        let value = token_by(meta, |value| ["true", "false"].contains(&value.as_str()))?;
+        self.value = value == "true";
+        Ok(())
+    }
+}
+```
+
+### Metadata
+
+You can see that in the `parse` method mentioned above we pass some object called `meta`. This is a metadata parameter of type `ParserMetadata` that inherits from `Metadata` provided by Heraclitus. The structure instance is carried through the parsing process to keep a track of current state. It holds information such as declared variables, functions, boolean parameters telling if current context is within a loop or a function etc. `ParserMetadata` is represented as:
+
+```rs
+struct ParserMetadata {
+    // Parsing contenxt
+    pub context: Context
+    // Error / Warning messages
+    pub messages: Vec<Message>
+    // ...
+}
+```
+
+You can find out more about this structure in [src/utils/metadata/parser.rs](https://github.com/amber-lang/amber/blob/master/src/utils/metadata/parser.rs) file.
+
+### Parsing Flow
+
+The journey starts with parsing the global `Block` that can be located in [src/modules/block.rs](https://github.com/amber-lang/amber/blob/master/src/modules/block.rs) file. The `Block` parses a sequence of statements (`Statement` located in [src/modules/statement/stmt.rs](https://github.com/amber-lang/amber/blob/master/src/modules/statement/stmt.rs)).
+
+#### Statement
+
+Statement (`Statement`) is a structure that can represent any `SyntaxModule` that is of statement type. In other words Statement is a wrapper for syntax modules that represents a statement type such as loop, if condition, variable declaration etc.
+
+```rs
+struct Statement {
+    value: Option<StatementType>
+}
+```
+
+Here we can see that the `value` field accepts `StatementType` enum that is declared above and represents a syntax module.
+
+```rs
+enum StatementType {
+    Expr(Expr),
+    VariableInit(VariableInit),
+    VariableSet(VariableSet),
+    IfCondition(IfCondition),
+    // ...
+}
+```
+
+Statement is built of a macro `handle_types!` that can be located in [src/modules/mod.rs](https://github.com/amber-lang/amber/blob/master/src/modules/mod.rs). The syntax modules provided to the macro are parsed sequentially in the order from top to bottom. This means that the parser will first try to match `Import` and then `FunctionDeclaration`. The expression  (`Expr` located in [src/modules/expression/expr.rs](https://github.com/amber-lang/amber/blob/master/src/modules/expression/expr.rs)) is passed as the final parameter to the `handle_types!` macro so that it's parsed at the very end.
+
+```rs
+handle_types!(StatementType, [
+    Import,
+    FunctionDeclaration,
+    // ...
+    Expr
+]);
+```
+
+This macro generates a couple of methods for the implementation of Stmt. This macro generates the following functions:
+- `fn get_modules(&self) -> Vec<StatementType>` - returns a vector of statements that can later be matched by `parse_match`
+- `fn parse_match(&mut self, meta: &mut ParserMetadata, module: StatementType) -> SyntaxResult` - parses and runs `get` method specified later in `Statement` to retrieve the `SyntaxResult`.
+- `fn translate_match(&self, meta: &mut TranslateMetadata, module: &StatementType) -> String` - calls `translate` method on each of the syntax modules to translate them into Bash code.
+- `fn document_match(&self, meta: &ParserMetadata, module: &StatementType) -> String` - calls `document` method on each of the syntax modules to retrieve a documentation string.'
+
+#### Expr
+
+Expression (`Expr` located in [src/modules/expression/expr.rs](https://github.com/amber-lang/amber/blob/master/src/modules/expression/expr.rs)) represents a syntax that is a value of certain type (also referred to as _kind_ because of the Rust's type keyword). For example `1 + 1` is an addition of type `Num`.
+
+```rs
+struct Expr {
+    value: Option<ExprType>,
+    kind: Type
+}
+```
+
+Analogically to `Statement`, expression also is a wrapper for syntax modules that are of expression type. Instead of `StatementType` enum `ExprType` is declared.
+
+```rs
+enum ExprType {
+    Bool(Bool),
+    Number(Number),
+    Text(Text),
+    Add(Add),
+    Sub(Sub),
+    // ...
+}
+```
+
+Since certain expressions require different approaches to parsing, there is a different macro used here to automate the process. There are a couple of different types of expressions:
+- `TernOp` - a ternary operator that is parsed from right to left. It's used for conditional ternary operator.
+- `BinOp` - a binary operator that is parsed from left to right.
+- `UnOp` - a unary operator that is parsed from left to right, where the symbol expression is on the left side.
+- `TypeOp` - a binary expression that is represented as expression followed by operator and then a type. Example of such operator is a cast operator: `12 as Bool`.
+- `Literal` - a Literal that doesn't have any directional precedence. Literal is the final group of expression precedence.
+
+The hierarchy of the groups is represented within the `parse_expr!` macro (defined in [src/modules/expression/macros.rs](https://github.com/amber-lang/amber/blob/master/src/modules/expression/macros.rs)). It returns an Expr` that has been parsed. Here is an example usage of this macro:
+
+```rs
+let result = parse_expr!(meta, [
+    ternary @ TernOp => [ Ternary ],
+    range @ BinOp => [ Range ],
+    addition @ BinOp => [ Add, Sub ],
+    multiplication @ BinOp => [ Mul, Div, Modulo ],
+    types @ TypeOp => [ Is, Cast ],
+    unops @ UnOp => [ Neg, Not ],
+    literals @ Literal => [ Bool, Number, Text ]
+]);
+```
+
+The pattern that the macro follows can be represented as `<function_group_name> @ <group_type> => [<syntax_modules>]`. The macro is declared as a recurrent relation of functions (groups) that are calling each other (inside of an internal macro `parse_expr_group!`).
+
+```rs
+let result = {
+    fn _terminal(...) {
+        panic!("Please end the recurrence in the group before");
+    }
+
+    fn literal(...) {
+        parse_expr_group!(... {literal, _terminal} ...);
+    }
+
+    // ...
+
+    fn range(...) {
+        parse_expr_group!(... {range, addition} ...);
+    }
+
+    fn ternary(...) {
+        parse_expr_group!(... {ternary, range} ...);
+    }
+
+    return ternary(...);
+};
+```
+
+The main objective of `parse_expr_group!` is to implement given function's body with appropriate parsing mechanism. If it's a `BinOp` that parses from left to right, then first we parse left expression by calling the lower order group, then we parse the operator, and then the right expression. You can read more on how parsing groups works in the macros file.
+--- ./0.4.0-alpha/contribute/guide_book.md ---
+1. [CLI Interface](#1-cli-interface)
+2. [Compiler](#2-compiler)
+   1. [Parser & tokenizer](#21-parser--tokenizer)
+   2. [Translator](#22-translator)
+   3. [Built-in](#23-built-in-creation)
+3. [Runtime libraries](#3-runtime-libraries)
+   1. [`stdlib`](#31-stdlib)
+4. [Tests](#4-tests)
+
+## 1. CLI Interface
+
+All CLI interface is in [`main.rs`](src/main.rs). [`clap`](https://crates.io/crates/clap) handles argument parsing.
+
+## 2. Compiler
+
+Compiler consists of:
+- `src/compiler.rs` - Main entry point for the compiler
+- `src/rules.rs` - Syntax rules that are used by Heraclitus framework to correctly output tokens
+- `src/utils` - Contains parsing environments, caches, contexts and Amber's implementations of metadata
+- `src/modules` - Syntax modules that parse Amber syntax and also handle the translation process
+- `src/translate` - Contains a definition of `TranslateModule` trait that is used to translate modules the previously mentioned `modules`
+
+`AmberCompiler` struct by itself is just a bootstrapper for all the syntax modules.
+
+### 2.1. Parser & Tokenizer
+
+Thanks to [`heraclitus`](https://github.com/amber-lang/Heraclitus), we can use simple abstractions to go through tokens.
+
+Please open any syntax module code file, and find a line that says: `impl SyntaxModule<ParserMetadata> for MODULE_NAME_HERE`
+
+It will have a `parse()` function, where all the magic happens. You can either dig into the code yourself or look at the example below to understand how it works.
+
+<details>
+<summary>Example parser</summary>
+
+**Important: this is pseudo code. Its purpose is to demonstrate how it should look like.**
+
+```rs
+// This code parses the following: `1 + 2`
+fn parse(meta: &mut ParserMetadata) -> SyntaxResult {
+    let digit_1 = meta.get_current_token();     // gets the text (as an Option)
+    token(meta, "+")?;                          // matches that there is a "+" and skips it
+    let digit_2 = meta.get_current_token();
+
+    self.digit_1 = digit_1.unwrap();
+    self.digit_2 = digit_2.unwrap();
+
+    Ok(())
+}
+```
+</details>
+
+### 2.2. Translator
+
+Same as parser open a syntax module, and find a line that says `impl TranslateModule for MODULE_NAME_HERE` and that should contain a `translate` function.
+
+Same as before, you can either dig into the code you opened or look at the example below.
+
+<details>
+<summary>Example parser</summary>
+
+**Important: this is pseudo code. Its purpose is to demonstrate how it should look like.**
+
+```rs
+// This will translate `1 + 2` into `(( 1 + 2 ))`
+fn translate() -> String {
+
+    // self.digit_1 and self.digit_2 is set earlier by the parser
+    format!("(( {} + {} ))", self.digit_1, self.digit_2)
+}
+```
+</details>
+
+Basically, the `translate()` method should return a `String` for the compiler to construct a compiled file from all of them. If it translates to nothing, you should output an empty string, like `String::new()`
+
+### 2.3. Creating Builtins
+
+In this guide we will see how to create a basic built-in function that in Amber syntax presents like:
+
+```ab
+example "Hello World"
+```
+
+And compiles to:
+
+```sh
+echo "Hello World"
+```
+
+For a real example based on this guide you can check the [`cd` builtin](https://github.com/amber-lang/amber/blob/master/src/modules/builtin/cd.rs) that is also Failable.
+
+<details>
+<summary>Let's start!</summary>
+
+Create a `src/modules/builtin/builtin.rs` file with the following content:
+
+
+```rs
+// This is the prelude that imports all necessary stuff of Heraclitus framework for parsing the syntax
+use heraclitus_compiler::prelude::*;
+// Expression module that can parse expressions
+use crate::modules::expression::expr::Expr;
+// Expression module to define if the builtin is failable
+// use crate::modules::condition::failed::Failed;
+// Translate module is not included in Heraclitus prelude as it's leaving the backend up to developer
+use crate::translate::module::TranslateModule;
+// Metadata is the object that is carried when iterating over syntax tree.
+// - `ParserMetadata` - it carries the necessary information about the current parsing context such as variables and functions that were declared up to this point, warning messages aggregated up to this point, information whether this syntax is declared in a loop, function, main block, unsafe scope etc.
+// `TranslateMetadata` - it carries the necessary information for translation such as wether we are in a silent scope, in an eval context or what indentation should be used.
+use crate::utils::{ParserMetadata, TranslateMetadata};
+// Documentation module tells compiler what markdown content should it generate for this syntax module. This is irrelevent to our simple module so we will just return empty string.
+use crate::docs::module::DocumentationModule;
+
+// This is a declaration of your built-in. Set the name accordingly.
+#[derive(Debug, Clone)]
+pub struct Example {
+    // This particular built-in contains a single expression
+    value: Expr,
+    // failed: Failed // You need this if you want that is failable
+}
+
+// This is an implementation of a trait that creates a parser for this module
+impl SyntaxModule<ParserMetadata> for Echo {
+    // Here you can define the name of this built-in that will displayed when debugging the parser
+    syntax_name!("Example");
+
+    // This function should always contain the default state of this syntax module
+    fn new() -> Self {
+        Echo {
+            value: Expr::new()
+            // failed: Failed::new() // You need this if you want that is failable
+        }
+    }
+
+    // This is a function that will parse this syntax module "Built-in". It returns SyntaxResult which is a `Result<(), Failure>` where the `Failure` is an Heraclitus primitive that returns an error. It can be either:
+    - `Quiet` - which means that this is not the right syntax module to parse
+    - `Loud` - which means that this is the correct syntax module but there is some critical error in the code that halts the entire compilation process
+    fn parse(&mut self, meta: &mut ParserMetadata) -> SyntaxResult {
+        // `token` parses a token `builtin` which is basically a command name for our built-in.
+        // If we add `?` in the end of the heraclitus provided function - this function will return a quiet error.
+        // Set the name accordingly.
+        token(meta, "example")?;
+        // `syntax` parses the `Expr` expression syntax module
+        syntax(meta, &mut self.value)?;
+        // syntax(meta, &mut self.failed)?; // You need this if you want that is failable
+        // This terminates parsing process with success exit code
+        Ok(())
+    }
+}
+
+// Here we implement the translator for the syntax module. Here we return valid Bash or sh code. Set the name accordingly.
+impl TranslateModule for Example {
+    // Here we define the valid translate function. The String returns the current line.
+    fn translate(&self, meta: &mut TranslateMetadata) -> String {
+        // Here we run the translate function on the syntax module `Expr`
+        let value = self.value.translate(meta);
+        // Here we return the Bash code
+        format!("echo {}", value)
+    }
+}
+
+// Here we implement what should documentation generation render (in markdown format) when encounters this syntax module. Since this is just a simple built-in that does not need to be documented, we simply return an empty String.
+impl DocumentationModule for Expr {
+    fn document(&self, _meta: &ParserMetadata) -> String {
+        String::new()
+    }
+}
+```
+
+Now let's import it in the main module for built-ins `src/modules/builtin/mod.rs`
+
+```rs
+pub mod echo;
+pub mod nameof;
+// ...
+pub mod builtin;
+```
+
+Now we have to integrate this syntax module with either statement `Stmt` or expression `Expr`. Since this is a statement module, we'll add it to the list of statement syntax modules. Let's modify `src/modules/statement/stmt.rs`:
+
+```rs
+// Let's import it first
+use crate::modules::builtin::builtin::Example;
+
+// Let's add it to the statement type enum
+pub enum StatementType {
+    // ...
+    Example(Example)
+}
+
+// Now, let's add it to the list of statement syntax modules, arranged in the order of parsing precedence:
+impl Statement {
+    handle_types!(StatementType, [
+        // ...
+        Example,
+        // ...
+    }
+
+    // ...
+}
+```
+</details>
+
+Don't forget to add a test in the [https://github.com/amber-lang/amber/tree/master/src/tests/validity](`validity`) folder and to add the new builtin to the list of the [reserved keywords](https://github.com/amber-lang/amber/blob/master/src/modules/variable/mod.rs#L16).
+
+## 3. Standard Library
+
+The Amber Standard Library (stdlib) provides a robust set of pre-defined functions and utilities designed to streamline development. It serves as a foundational toolkit, offering solutions for common tasks such as data manipulation, mathematical operations, string handling, and more. The `stdlib` is written in Amber and is located in the `src/std` directory. Each function in the `stdlib` must be covered by a test in `src/tests/stdlib`.
+
+## 4. Tests
+
+Amber uses `cargo test` for testing:
+- `validity` - the validity of the compiler output (`src/tests/validity/`)
+- `erroring` - the error handling of the compiler (`src/tests/erroring/`)
+- `stdlib` - the standard library functions (`src/tests/stdlib/`)
+
+For every test written in Amber there are 3 ways to check the result following this order:
+
+* if a `// Output` comment on top that include the output to match
+* `Succeeded` word will be matched against the test output
+
+Tests will be executed without recompilation. Amber will load the scripts and verify the output in the designated file to determine if the test passes.
+
+Some tests require additional setup, such as those for `download` that needs Rust to load a web server. These functions require special tests written in Rust that we can find in `src/tests/stdlib.rs` file.
+
+<details>
+<summary>Let's write a simple test</summary>
+
+```rs
+#[test]
+fn prints_hi() {
+    let code = "
+        echo \"hi!\"
+    ";
+    test_amber!(code, "hi!");
+}
+```
+</details>
+--- ./0.4.0-alpha/advanced_syntax/advanced_syntax.md ---
+In the subsequent section we will learn more about Amber syntax that is recommended for advanced Amber or Shell Script developers.
+--- ./0.4.0-alpha/advanced_syntax/compiler_flags.md ---
+Compiler flags enable customization of the compiler’s behavior within the scope of a specific function. These flags are particularly useful for managing edge cases by temporarily relaxing certain restrictions. Below is a list of available compiler flags and their functions:
+- `allow_nested_if_else` - Disables warnings that recommend using specialized [if-chain](/basic_syntax/conditions#if-chain) syntax.
+- `allow_generic_return` - Suppresses warnings that prompt the developer to specify a concrete return type when using arguments with defined types.
+- `allow_absurd_cast` - Turns off warnings about the potential for nonsensical results when using force-type casting, which may result in an [absurd cast](/advanced_syntax/as_cast#absurd-cast).
+
+```ab
+#[allow_nested_if_else]
+fun foo() {
+    // ...
+}
+```
+--- ./0.4.0-alpha/advanced_syntax/as_cast.md ---
+As cast is a tool that might initially seem like an easy way to convert types. So, why has this functionality found its place in the advanced category? Well, with great power comes great responsibility. We could perform some casts that make sense, like from `Bool` to `Num`, but we could also perform casts that we refer to as _absurd_. An example of this might be converting `Text` to `Num`.
+
+## Regular Casts
+
+There might be times when we want to pass a variable that is a `Bool` to a function that accepts `Num`. Since Bool and Num are types that are compatible with each other, we can easily cast one into the other like so:
+
+```ab
+let isReady = systemIsReady()
+processStatus(isReady as Num)
+```
+
+## Absurd Casts
+
+Amber allows us to cast one data type to any other data type. This should be avoided and only used if necessary.
+
+```ab
+let a = "12"
+let b = a as Num
+```
+
+We can clearly see that this could lead to some big bugs. For example one could pass `"abc"` instead of `"12"` in a string which is not a valid value for `Num` type. To convert a string to a number, it's better to use `parse()` function from the [standard library]().
+
+```ab
+import { parse_number } from "std/text"
+
+let a = "12"
+let b = parse_number(a) failed {
+    echo "Variable `a` is not a number."
+}
+
+echo b + 12
+// Outputs: 24
+```
+--- ./0.4.0-alpha/advanced_syntax/type_condition.md ---
+Sometimes when building generic functions one could find it very convenient to additionally validate if passed value is one of the data types that are supported.
+
+```ab
+fun getObject(value) {
+    if {
+        value is Text: getByName(value)
+        value is Num: getById(value)
+    }
+}
+```
+--- ./0.4.0-alpha/advanced_syntax/builtins.md ---
+Builtins are native methods (built in the compiler itself) and they are also reserved keywords in Amber.
+
+Similar to the standard library, they generate valid [Shellcheck](https://www.shellcheck.net/) code (though full support for this in Amber is still in progress).
+
+## Cd
+
+Transpile to `cd` which changes the current directory, requires a `Text` parameter.
+
+```ab
+cd "/tmp"
+```
+
+## Echo
+
+Transpile to `echo` which prints text to the console, requires a `Text` parameter.
+
+```ab
+echo "Hello World!"
+```
+
+## Len
+
+For a `Text` value, this builtin calculates and returns the length (in ASCII characters) as a `Num` type.  It is transpiled to `${#TEXT}`:
+
+```ab
+// Returns 37
+echo len("Jackdaws love my big sphinx of quartz")
+```
+
+For an `Array` `[]` value, it calculates and returns the length of the array as a `Num` type.  It is transpiled to `${#ARRAY[@]}`:
+
+```ab
+// Returns 5
+echo len(["one", "two", "three", "four", "five"])
+```
+
+## Lines
+
+This builtin reads one line at a time from a text file.  It can be used in place of an array in an iterative `for` loop (with or without an index).  This is efficient because each line is read into memory, and processed before the next line is read:
+
+```ab
+for line in lines("foo.txt") {
+    echo line
+}
+
+for index, line in lines("bar.txt") {
+    echo "#{index} {line}"
+}
+```
+
+Alternatively, it can be used as the right hand side of an array assignment.  This is inefficient because the entire file is read into memory in one go:
+
+```ab
+let lines = lines("foo.txt")
+lines += lines("bar.txt")
+echo len(lines)
+```
+
+> WARNING: While embedded Bash commands like `$ cat foo.txt $` require a `trust` keyword or `failed` block, Amber does not currently support this for the `lines` builtin. If the file does not exist at runtime, the program will terminate midway, **potentially losing data stored only in variables**
+
+## Mv
+
+If we need to move files we can use the `mv` builtin, requires two `Text` parameters.
+*Doesn't support the `mv` unix command parameters*.
+
+```ab
+mv "/tmp/a" "/tmp/b"
+```
+
+This builtin is `failable`, meaning we can handle errors like this:
+
+```ab
+mv "/tmp/a" "/tmp/b" failed {
+    echo "Error"
+}
+```
+
+## Nameof
+
+For more advanced commands, we might need the name of the variable in the compiled script. The `nameof` keyword provides this functionality.
+
+For example, this allows us to perform operations like:
+
+```ab
+let variable = null
+
+trust $ {nameof variable}=12 $
+// Which is the same as declaring (but it is more readable in this way)
+let variable = 12
+```
+--- ./0.4.0-alpha/by_example/examples.md ---
+> WARNING: Experimental standard library is used here. The full documentation covering it will be created soon as it get's more stable.
+
+Here, you’ll find a collection of practical scripts designed to help you quickly grasp the fundamentals and advanced features of the Amber programming language. Whether you are new to programming or an experienced developer, these examples will guide you through.
+--- ./0.4.0-alpha/by_example/ubuntu_updater.md ---
+Here is an example script to periodically install software updates on an Ubuntu system. The update commands are wrapped in a `main` block, so that all commands between `$` signs can pass up errors with the `?` operator. The script will stop in that case and not execute any further commands.
+
+> As you can see, the Amber code currently looks as if it is intertwined with bash commands. As development progresses, executing custom commands will be even better integrated with special syntax and improved runtime safety features to aid this process.
+
+```ab
+main {
+    // Print output and log it at the same time.
+    $ exec > >(tee -a /var/log/autoapt.log) 2>&1 $?
+    // Log the current date so that we can check when any failed runs happened.
+    $ date $?
+
+    // Internet is slow on Austrian trains. Check the Wifi SSID and stop in that
+    // case.
+    silent trust $ iwgetid -r | grep -E '(OEBB|WESTlan)' $
+    if status == 0 {
+        echo "Skipping updates because of slow Wifi"
+        exit 0
+    }
+
+    $ export DEBIAN_FRONTEND=noninteractive $?
+    $ apt update $?
+    // By default answer all user interaction questions with yes, for example
+    // for debconf.
+    // Use the old configuration file when new config files arrive.
+    // Also say yes to setting up config files.
+    $ yes '' | apt \
+        -o Dpkg::Options::=--force-confold \
+        -o Dpkg::Options::=--force-confdef \
+        -y --allow-downgrades --allow-remove-essential \
+        --allow-change-held-packages \
+        upgrade $?
+    // Clean up any packages that are not needed anymore.
+    $ apt autoremove -y $?
+    // Also update Snap packages.
+    $ snap refresh --color=never --unicode=never $?
+}
+```
+--- ./0.4.0-alpha/by_example/lsp_installer.md ---
+This script automates the installation of several Language Server Protocol (LSP) tools, primarily by downloading them from GitHub and installing them on your system. The latest version of the script (and also **complete**) can be found [here](https://github.com/Mte90/My-Scripts/blob/master/dev/lsp-installer/install.ab).
+
+> The script uses standard library functions to simplify the process of downloading, unpacking, and installing various LSP tools. It checks for necessary permissions, downloads the latest releases of selected LSPs, moves them to system directories, makes them executable, and installs additional LSPs using `npm`, `pip`, and `gem` as needed.
+> For each tool, if the download or installation fails, an error message is displayed, and the script exits to prevent partial installations.
+
+```ab
+import { dir_exists, file_chmod, symlink_create } from "std/fs"
+import { file_download } from "std/http"
+import { is_root } from "std/env"
+import { text_contains } from "std/text"
+
+if not is_root() {
+    echo "This script requires root permissions!"
+    exit 1
+}
+
+fun get_download_path(repo, position) {
+    return trust $ curl -sL "https://api.github.com/repos/{repo}/releases" | jq -r ".[0].assets.[{position}].browser_download_url" $
+}
+
+fun move_to_bin(download_url, binary) {
+    if silent file_download(download_url, binary) {
+        mv binary "/usr/local/bin" failed {
+            echo "Move {binary} to /usr/local/bin failed!"
+            exit 1
+        }
+        file_chmod("/usr/local/bin/{binary}", "+x")
+    } else {
+        echo "Download for {binary} at {download_url} failed"
+        exit 1
+    }
+}
+
+fun download_to_bin(download_url, binary, packed_file) {
+    if silent file_download(download_url, packed_file) {
+        trust {
+            if text_contains("tar.gz", packed_file) {
+                $ tar -zxvf "./{packed_file}" -C ./ > /dev/null 2>&1 $
+                trust mv "./{binary}" "/usr/local/bin"
+            } else {
+                $ gunzip -c - > "/usr/local/bin/{binary}" $
+            }
+            $ rm "./{packed_file}" $
+        }
+        file_chmod("/usr/local/bin/{binary}", "+x")
+    } else {
+        echo "Download for {binary} at {download_url} failed"
+        exit 1
+    }
+}
+
+cd "/tmp"
+
+echo "Install Typos LSP"
+download_to_bin(get_download_path("tekumara/typos-lsp", 6), "typos-lsp", "typos.tar.gz")
+
+echo "Install Rust LSP"
+download_to_bin("https://github.com/rust-lang/rust-analyzer/releases/latest/download/rust-analyzer-x86_64-unknown-linux-gnu.gz", "rust-analyzer", "rust-analyzer-x86_64-unknown-linux-gnu.gz")
+
+echo "Install Lua LSP"
+if not dir_exists("/opt/lua-language-server") {
+    cd "/opt/"
+    trust $ git clone https://github.com/LuaLS/lua-language-server $
+} else {
+    cd "/opt/lua-language-server"
+}
+silent trust {
+    cd "lua-language-server"
+    $ git pull $
+    $ ./make.sh $
+}
+symlink_create("/opt/lua-language-server/bin/lua-language-server", "/usr/local/bin/lua-language-server")
+
+cd "/tmp"
+
+let npm_lsp = ["vscode-langservers-extracted", "@tailwindcss/language-server", "@olrtg/emmet-language-server", "intelephense", "bash-language-server"]
+let npm_lsp_name = ["CSS, HTML, JSON LSP", "Tailwind LSP", "Emmet LSP", "Intelephense LSP", "Bash LSP"]
+for index, lsp in npm_lsp {
+    echo "Install {npm_lsp_name[index]}"
+    $ npm i -g "{lsp}" $ failed {
+        echo "Error! Exit code: {status}"
+    }
+}
+```
+--- ./0.4.0-alpha/by_example/bot_detector.md ---
+This script is meant for periodic execution and must be run as root. It scans an Nginx webserver log file for large volumes of requests from automated bots not identifying themselves as bots. If a bad bot makes more than 1000 requests per hour then the IP address is added to a blocklist file that can be picked up by firewall block software such as ipset.
+
+```ab
+// Script for detecting unwanted bots on our sites and blocking their IPs.
+// Usage: ./bot-detector.sh <LOG_FILE_PATH>
+// The script is triggered by a cronjob every 10 minutes.
+
+import * from "std/text"
+
+main (args) {
+    if len(args) < 1 {
+        echo "Path to log file missing."
+        echo "Usage: bot-detector.sh <logfile>"
+        echo "       bot-detector.sh /var/log/nginx/access.log"
+        exit 1
+    }
+
+    let logfile = args[0]
+    $ test -r {logfile} $ failed {
+        echo "File not found or not readable: {logfile}"
+        exit 1
+    }
+
+    let start = parse_number($ date +%s $?)?
+
+    // Get server IP address for excluding.
+    let server_ip = $ hostname -i $?
+
+    // We want to check the previous hour and the current hour.
+    let timeframes = ["1 hour ago", "now"]
+    for timeframe in timeframes {
+        if timeframe == "1 hour ago" {
+            echo "Checking the previous hour..."
+        } else {
+            echo "Checking the current hour..."
+        }
+
+        let hour_timestamp = $ date "+%d/%b/%Y:%H" -d "{timeframe}" $?
+        // Get the top 20 IP addresses that accessed job pages for the given hour
+        // timestamp. Includes a count per IP address in the format: "<count> <ip>".
+        // Only check GET requests to certain job-related paths.
+        // Ignore requests from well-behaved bots that send a bot user agent.
+        // Never block requests from Google in the user agent.
+        // Exclude requests to /files/ paths.
+        // Check the top 20 results.
+        let ip_log = trust $ grep -e "{hour_timestamp}" "{logfile}" | \
+            grep \
+                -e "GET /job/" \
+                -e "GET /jobs/" \
+                -e "GET /stelle/" \
+                -e "GET /stellen/" \
+                -e "GET /stellenangebot/" \
+                -e "GET /de/stelle/" \
+                -e "GET /de/stellen/" \
+                -e "GET /de/stellenangebot/" | \
+            grep -i -v "bot" | \
+            grep -v "Google" | \
+            grep -v /files/ | \
+            awk '\{print \$1}' | sort | uniq -c | sort -nr | \
+            grep -v "{server_ip}" | \
+            head -n 20 $
+
+        for line in lines(ip_log) {
+            let parts = split(line, " ")
+            let count = parse_number(parts[0])?
+            // Skip IP addresses that sent less than 1000 requests.
+            if count < 1000 {
+                continue
+            }
+
+            let ip = parts[1]
+            silent trust $ grep "{ip}" /etc/ipblocklist.txt $
+            if status == 0 {
+                echo "IP address {ip} is already blocked."
+                continue
+            }
+            silent trust $ grep "{ip}" /etc/ipexcludedlist.txt $
+            if status == 0 {
+                echo "IP address {ip} is allow-listed and will not be blocked."
+                continue
+            }
+            echo "Blocking IP address: {ip} ({count} requests)"
+            $ echo "{ip}" >> /etc/ipblocklist.txt $?
+            $ echo "\$(date) | IP addess {ip} added to the block list, RPH={count}" >> /var/log/bot-detector.log $?
+        }
+    }
+    let end = parse_number($ date +%s $?)?
+    let duration = end - start
+    echo "Execution time: {duration} seconds"
+}
+```
+--- ./0.4.0-alpha/by_example/sh_tester.md ---
+This script is used within the project to automate the process of identifying any ShellCheck validation issues in our test cases after they are compiled to Bash scripts.
+
+> The script loops through all files in the Amber project's standard library test folder (`src/tests/stdlib/`), compiles each test to a Bash script, and then runs ShellCheck on the resulting script.
+> If ShellCheck detects any issues (i.e., returns a non-zero exit code), the script generates a `.txt` report detailing the problems found. This report is stored in a designated temporary directory (`/tmp/amber-sc-tests`).
+
+```ab
+import { split, text_contains } from "std/text"
+import { file_write, file_append, dir_exists, file_exists, dir_create } from "std/fs"
+
+let path = "/tmp/amber-sc-tests"
+
+if (not dir_exists(path)) {
+    dir_create(path)
+}
+
+let report = "{path}/report.txt"
+trust file_write(report, "Report for Shellcheck")
+let output = ""
+
+let stdtests = trust $ /usr/bin/ls "src/tests/stdlib/" $
+let stdlib = split(stdtests, "\n")
+
+for v in stdlib {
+    if not text_contains(v, ".txt") and file_exists("src/tests/stdlib/{v}") {
+        echo "Generating Bash script for test {v}"
+        trust $ ./target/debug/amber "src/tests/stdlib/{v}" "{path}/{v}.sh" $
+        output = trust $ shellcheck "{path}/{v}.sh" $
+
+        if (status != 0) {
+            echo "Shellcheck found something!"
+            trust file_append(report, output)
+        }
+    }
+}
+```
+--- ./0.4.0-alpha/stdlib/doc.md ---
+## Builtin vs Standard Library
+
+[Builtins](/advanced_syntax/builtins) are methods that are included in the Amber compiler and don't need to be imported in the code.
+
+In contrast, the standard library (stdlib) is a collection of Amber functions that are embedded in every Amber release. Each version of Amber may include changes to the standard library and you need to import these functions in your code. These functions are more advanced and can accept various parameters.
+
+## Standard Library and Shellcheck
+
+Just like the Amber's compiled Bash output, all standard library functions are built from the ground up to be shellcheck compliant. This means that you can focus more on building the logic and spend less time on keeping the code predictable and valid.
+
+## How to Use It
+
+Below is an example of how to use the standard library to generate documentation (using the [script](https://github.com/amber-lang/amber-docs/sync-stdlib-doc.ab) provided on the Amber Documentation repository):
+
+```ab
+import { download } from "std/http"
+import { split, contains } from "std/text"
+import { file_exist } from "std/fs"
+
+trust $ rm -fr /tmp/amber-git $
+if silent download("https://github.com/amber-lang/amber/archive/refs/heads/master.zip", "/tmp/amber-git.zip") {
+    trust $ unzip "/tmp/amber-git.zip" -d /tmp/amber-git $
+
+    let std = trust $ /usr/bin/ls "/tmp/amber-git/amber-master/src/std/" $
+    let stdlib = split(std, "\n")
+
+    for v in stdlib {
+        if (contains(v, ".ab") and file_exist("/tmp/amber-git/amber-master/src/std/{v}")) {
+            trust $ amber --docs "/tmp/amber-git/amber-master/src/std/{v}" "./docs/stdlib/doc" $
+            echo "\n"
+        }
+    }
+}
+```
+
+> WARNING: Each Amber release may have a different version of the standard library, so make sure to verify compatibility with the specific release you are using.
+
+### Importing a Library
+
+You can also import all functions from a module by using the following syntax:
+
+```ab
+import * from "std/http"
+```
+
+However, only the functions that are used in the script will be included in the generated Bash code, ensuring efficiency.
+
+If you prefer a verbose import, you can specify a single function:
+
+```ab
+import { download } from "std/http"
+```
+--- ./0.4.0-alpha/stdlib/doc/text.md ---
+## `capitalized`
+
+```ab
+import { capitalized } from "std/text"
+```
+
+```ab
+pub fun capitalized(text: Text): Text 
+```
+
+Capitalize the first letter of the given `text`.
+
+You can check the original tests for code examples:
+* [text_capitalized.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_capitalized.ab)
+
+## `char_at`
+
+```ab
+import { char_at } from "std/text"
+```
+
+```ab
+pub fun char_at(text: Text, index: Num): Text 
+```
+
+Returns the character from `text` at the specified `index` (0-based).
+
+If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
+
+You can check the original tests for code examples:
+* [text_char_at.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_char_at.ab)
+
+## `ends_with`
+
+```ab
+import { ends_with } from "std/text"
+```
+
+```ab
+pub fun ends_with(text: Text, suffix: Text): Bool 
+```
+
+Checks if text ends with a value.
+
+You can check the original tests for code examples:
+* [text_ends_with.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_ends_with.ab)
+
+## `join`
+
+```ab
+import { join } from "std/text"
+```
+
+```ab
+pub fun join(list: [Text], delimiter: Text): Text 
+```
+
+Merges text using the delimiter specified.
+
+You can check the original tests for code examples:
+* [text_join.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_join.ab)
+
+## `lowercase`
+
+```ab
+import { lowercase } from "std/text"
+```
+
+```ab
+pub fun lowercase(text: Text): Text 
+```
+
+Makes the text input lowercase using `tr`.
+
+You can check the original tests for code examples:
+* [text_lowercase.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_lowercase.ab)
+
+## `lpad`
+
+```ab
+import { lpad } from "std/text"
+```
+
+```ab
+pub fun lpad(text: Text, pad: Text, length: Num): Text 
+```
+
+Pads `text` with the specified `pad` character on left until it reaches the desired `length`.
+
+You can check the original tests for code examples:
+* [text_lpad.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_lpad.ab)
+
+## `match_regex`
+
+```ab
+import { match_regex } from "std/text"
+```
+
+```ab
+pub fun match_regex(source: Text, search: Text, extended: Bool = false): Bool 
+```
+
+Match all occurences of a regex pattern.
+
+Function uses `sed`
+
+You can check the original tests for code examples:
+* [text_match_regex.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_match_regex.ab)
+* [text_match_regex_any.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_match_regex_any.ab)
+
+## `match_regex_any`
+
+```ab
+import { match_regex_any } from "std/text"
+```
+
+```ab
+pub fun match_regex_any(text: Text, terms: [Text]): Bool 
+```
+
+Checks if an array value (with regular expression) is in the text.
+
+You can check the original tests for code examples:
+* [text_match_regex_any.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_match_regex_any.ab)
+
+## `parse_number`
+
+```ab
+import { parse_number } from "std/text"
+```
+
+```ab
+pub fun parse_number(text: Text): Num ? 
+```
+
+Attempts to parse a given text into a number, returning the parsed number or zero if parsing fails.
+
+You can check the original tests for code examples:
+* [text_parse_number.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_parse_number.ab)
+
+## `replace`
+
+```ab
+import { replace } from "std/text"
+```
+
+```ab
+pub fun replace(source, search, replace) 
+```
+
+Replaces all occurences of a pattern in the content with the provided replace text.
+
+You can check the original tests for code examples:
+* [text_replace.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace.ab)
+* [text_replace_one.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_one.ab)
+* [text_replace_regex_basic.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_regex_basic.ab)
+* [text_replace_regex_ext.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_regex_ext.ab)
+
+## `replace_one`
+
+```ab
+import { replace_one } from "std/text"
+```
+
+```ab
+pub fun replace_one(source, search, replace) 
+```
+
+Replaces the first occurence of a pattern in the content with the provided replace text.
+
+You can check the original tests for code examples:
+* [text_replace_one.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_one.ab)
+
+## `replace_regex`
+
+```ab
+import { replace_regex } from "std/text"
+```
+
+```ab
+pub fun replace_regex(source: Text, search: Text, replace: Text, extended: Bool = false): Text 
+```
+
+Replaces all occurences of a regex pattern in the content with the provided replace text.
+
+Function uses `sed`
+
+You can check the original tests for code examples:
+* [text_replace_regex_basic.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_regex_basic.ab)
+* [text_replace_regex_ext.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_replace_regex_ext.ab)
+
+## `reversed`
+
+```ab
+import { reversed } from "std/text"
+```
+
+```ab
+pub fun reversed(text: Text): Text 
+```
+
+Reverses text using `rev`.
+
+You can check the original tests for code examples:
+* [text_reversed.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_reversed.ab)
+
+## `rpad`
+
+```ab
+import { rpad } from "std/text"
+```
+
+```ab
+pub fun rpad(text: Text, pad: Text, length: Num): Text 
+```
+
+Pads `text` with the specified `pad` character on the right until it reaches the desired `length`.
+
+You can check the original tests for code examples:
+* [text_rpad.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_rpad.ab)
+
+## `slice`
+
+```ab
+import { slice } from "std/text"
+```
+
+```ab
+pub fun slice(text: Text, index: Num, length: Num = 0): Text 
+```
+
+Returns a substring from `text` starting at the given `index` (0-based).
+
+If `index` is negative, the substring starts from the end of `text` based on the absolute value of `index`.
+If `length` is provided, the substring will include `length` characters; otherwise, it slices to the end of `text`.
+If `length` is negative, an empty string is returned.
+
+You can check the original tests for code examples:
+* [text_slice.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_slice.ab)
+
+## `split`
+
+```ab
+import { split } from "std/text"
+```
+
+```ab
+pub fun split(text: Text, delimiter: Text): [Text] 
+```
+
+Splits the input `text` into an array of substrings using the specified `delimiter`.
+
+You can check the original tests for code examples:
+* [text_split.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split.ab)
+* [text_split_chars.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split_chars.ab)
+* [text_split_lines.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split_lines.ab)
+* [text_split_multiline.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split_multiline.ab)
+
+## `split_chars`
+
+```ab
+import { split_chars } from "std/text"
+```
+
+```ab
+pub fun split_chars(text: Text): [Text] 
+```
+
+Splits a text into an array of individual characters.
+
+You can check the original tests for code examples:
+* [text_split_chars.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split_chars.ab)
+
+## `split_lines`
+
+```ab
+import { split_lines } from "std/text"
+```
+
+```ab
+pub fun split_lines(text: Text): [Text] 
+```
+
+Splits a `text` into an array of substrings based on newline characters.
+
+You can check the original tests for code examples:
+* [text_split_lines.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_split_lines.ab)
+
+## `split_words`
+
+```ab
+import { split_words } from "std/text"
+```
+
+```ab
+pub fun split_words(text: Text): [Text] 
+```
+
+Splits a `text` into an array of substrings based on space character.
+
+## `starts_with`
+
+```ab
+import { starts_with } from "std/text"
+```
+
+```ab
+pub fun starts_with(text: Text, prefix: Text): Bool 
+```
+
+Checks if text starts with a value.
+
+You can check the original tests for code examples:
+* [text_starts_with.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_starts_with.ab)
+
+## `text_contains`
+
+```ab
+import { text_contains } from "std/text"
+```
+
+```ab
+pub fun text_contains(text: Text, phrase: Text): Bool 
+```
+
+Checks if some text contains a value.
+
+You can check the original tests for code examples:
+* [text_contains.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_contains.ab)
+* [text_contains_all.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_contains_all.ab)
+* [text_contains_any.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_contains_any.ab)
+
+## `text_contains_all`
+
+```ab
+import { text_contains_all } from "std/text"
+```
+
+```ab
+pub fun text_contains_all(text: Text, terms: [Text]): Bool 
+```
+
+Checks if all the arrays values are in the string
+
+You can check the original tests for code examples:
+* [text_contains_all.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_contains_all.ab)
+
+## `text_contains_any`
+
+```ab
+import { text_contains_any } from "std/text"
+```
+
+```ab
+pub fun text_contains_any(text: Text, terms: [Text]): Bool 
+```
+
+Checks if an array value is in the text.
+
+You can check the original tests for code examples:
+* [text_contains_any.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_contains_any.ab)
+
+## `trim`
+
+```ab
+import { trim } from "std/text"
+```
+
+```ab
+pub fun trim(text: Text): Text 
+```
+
+Trims the spaces from the text input.
+
+You can check the original tests for code examples:
+* [text_trim.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_trim.ab)
+* [text_trim_left.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_trim_left.ab)
+* [text_trim_right.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_trim_right.ab)
+
+## `trim_left`
+
+```ab
+import { trim_left } from "std/text"
+```
+
+```ab
+pub fun trim_left(text: Text): Text 
+```
+
+Trims the spaces at top of the text using `sed`.
+
+You can check the original tests for code examples:
+* [text_trim_left.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_trim_left.ab)
+
+## `trim_right`
+
+```ab
+import { trim_right } from "std/text"
+```
+
+```ab
+pub fun trim_right(text: Text): Text 
+```
+
+Trims the spaces at end of the text using `sed`.
+
+You can check the original tests for code examples:
+* [text_trim_right.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_trim_right.ab)
+
+## `uppercase`
+
+```ab
+import { uppercase } from "std/text"
+```
+
+```ab
+pub fun uppercase(text: Text): Text 
+```
+
+Makes the text input uppercase using `tr`.
+
+You can check the original tests for code examples:
+* [text_uppercase.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_uppercase.ab)
+
+## `zfill`
+
+```ab
+import { zfill } from "std/text"
+```
+
+```ab
+pub fun zfill(text: Text, length: Num): Text 
+```
+
+Pads `text` with zeros on the left until it reaches the desired `length`.
+
+You can check the original tests for code examples:
+* [text_zfill.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/text_zfill.ab)
+
+--- ./0.4.0-alpha/stdlib/doc/http.md ---
+## `file_download`
+
+```ab
+import { file_download } from "std/http"
+```
+
+```ab
+pub fun file_download(url: Text, path: Text): Bool 
+```
+
+Downloads a file from a given URL and saves it to a specified path using available command-line tools.
+
+It checks for the availability of common command-line tools (`curl`, `wget`, and `aria2c`, in order) and uses the first available tool to perform the download.
+If none of the tools are available, the function returns `false`.
+
+--- ./0.4.0-alpha/stdlib/doc/fs.md ---
+## `dir_create`
+
+```ab
+import { dir_create } from "std/fs"
+```
+
+```ab
+pub fun dir_create(path: Text): Null 
+```
+
+Creates a directory with all parent directories as required.
+
+You can check the original tests for code examples:
+* [fs_dir_create.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_dir_create.ab)
+
+## `dir_exists`
+
+```ab
+import { dir_exists } from "std/fs"
+```
+
+```ab
+pub fun dir_exists(path) 
+```
+
+Checks if a directory exists.
+
+You can check the original tests for code examples:
+* [fs_dir_exists.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_dir_exists.ab)
+
+## `escape_non_glob_chars`
+
+```ab
+import { escape_non_glob_chars } from "std/fs"
+```
+
+```ab
+fun escape_non_glob_chars(path: Text): Text 
+```
+
+Escapes all characters in the passed-in glob except "*", "?" and "/",
+to prevent injection attacks.
+
+## `file_append`
+
+```ab
+import { file_append } from "std/fs"
+```
+
+```ab
+pub fun file_append(path, content) 
+```
+
+Appends content to a file.
+
+Doesn't check if the file exists.
+
+You can check the original tests for code examples:
+* [fs_file_append.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_append.ab)
+
+## `file_chmod`
+
+```ab
+import { file_chmod } from "std/fs"
+```
+
+```ab
+pub fun file_chmod(path: Text, mode: Text): Bool 
+```
+
+Changes the permission bits of a file.
+
+If the file doesn't exist, it returns `false` and prints a message.
+
+You can check the original tests for code examples:
+* [fs_file_chmod.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_chmod.ab)
+
+## `file_chown`
+
+```ab
+import { file_chown } from "std/fs"
+```
+
+```ab
+pub fun file_chown(path: Text, user: Text): Bool 
+```
+
+Changes the owner of a file.
+
+If the file doesn't exist, it returns `false` and prints a message.
+
+You can check the original tests for code examples:
+* [fs_file_chown.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_chown.ab)
+
+## `file_exists`
+
+```ab
+import { file_exists } from "std/fs"
+```
+
+```ab
+pub fun file_exists(path) 
+```
+
+Checks if a file exists.
+
+You can check the original tests for code examples:
+* [fs_file_exists.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_exists.ab)
+
+## `file_extract`
+
+```ab
+import { file_extract } from "std/fs"
+```
+
+```ab
+pub fun file_extract(path: Text, target: Text): Null ? 
+```
+
+Extract the file detecting from the filename the extension
+Supports: bz2, gz, xz, bz2, deb, rar, rpm, tar(gz/xz/bz), zip(war/jar), 7z
+Note: Not all the commands supports the output folder path
+
+You can check the original tests for code examples:
+* [fs_file_extract.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_extract.ab)
+
+## `file_glob`
+
+```ab
+import { file_glob } from "std/fs"
+```
+
+```ab
+pub fun file_glob(path: Text): [Text] ? 
+```
+
+Finds all files or directories matching a file glob.
+
+You can check the original tests for code examples:
+* [fs_file_glob_absolute_missing_file.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_absolute_missing_file.ab)
+* [fs_file_glob_absolute_multiple_globs.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_absolute_multiple_globs.ab)
+* [fs_file_glob_absolute_wild_char.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_absolute_wild_char.ab)
+* [fs_file_glob_absolute_wild_star.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_absolute_wild_star.ab)
+* [fs_file_glob_absolute_with_spaces.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_absolute_with_spaces.ab)
+* [fs_file_glob_injection_attack.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_injection_attack.ab)
+* [fs_file_glob_relative_missing_file.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_relative_missing_file.ab)
+* [fs_file_glob_relative_multiple_globs.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_relative_multiple_globs.ab)
+* [fs_file_glob_relative_wild_char.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_relative_wild_char.ab)
+* [fs_file_glob_relative_wild_star.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_relative_wild_star.ab)
+* [fs_file_glob_relative_with_spaces.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_glob_relative_with_spaces.ab)
+
+## `file_glob_all`
+
+```ab
+import { file_glob_all } from "std/fs"
+```
+
+```ab
+pub fun file_glob_all(paths: [Text]): [Text] ? 
+```
+
+Finds all files or directories matching multiple file globs. When
+we have union types, this functionality can be merged into the main
+`glob` function.
+
+## `file_read`
+
+```ab
+import { file_read } from "std/fs"
+```
+
+```ab
+pub fun file_read(path) 
+```
+
+Gets file contents from a path.
+
+You can check the original tests for code examples:
+* [fs_file_read.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_read.ab)
+
+## `file_write`
+
+```ab
+import { file_write } from "std/fs"
+```
+
+```ab
+pub fun file_write(path, content) 
+```
+
+Writes content to a file.
+Doesn't check if the file exist
+
+You can check the original tests for code examples:
+* [fs_file_write.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_file_write.ab)
+
+## `symlink_create`
+
+```ab
+import { symlink_create } from "std/fs"
+```
+
+```ab
+pub fun symlink_create(origin: Text, destination: Text): Bool 
+```
+
+Creates a symbolic link.
+
+If the file doesn't exist, it returns a boolean and prints a message.
+
+You can check the original tests for code examples:
+* [fs_symlink_create.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/fs_symlink_create.ab)
+
+--- ./0.4.0-alpha/stdlib/doc/date.md ---
+## `date_add`
+
+```ab
+import { date_add } from "std/date"
+```
+
+```ab
+pub fun date_add(add: Text, date: Text = "", utc: Bool = false): Text ? 
+```
+
+### EXPERIMENTAL
+
+Adds a value to a date.
+
+If no date is specified, the current date is used.
+
+Example : `date_add("+3 days")`
+
+You can use (+/-):
+
+- years
+- months
+- days
+- hours
+- minutes
+- seconds
+
+You can check the original tests for code examples:
+* [date_add.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/date_add.ab)
+
+## `date_compare`
+
+```ab
+import { date_compare } from "std/date"
+```
+
+```ab
+pub fun date_compare(date_a: Text, date_b: Text = "", utc: Bool = false): Num ? 
+```
+
+### EXPERIMENTAL
+Compares two dates.
+
+Returns 1 if date_a is after date_b.
+
+Returns 0 if date_a and date_b is the same.
+
+Returns -1 if date_b is after date_a.
+
+If date_b is not provided, current date will be used.
+
+You can check the original tests for code examples:
+* [date_compare.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/date_compare.ab)
+
+## `date_now`
+
+```ab
+import { date_now } from "std/date"
+```
+
+```ab
+pub fun date_now(): Num 
+```
+
+Returns the current timestamp (seconds since the Epoch (1970-01-01 00:00 UTC)).
+
+You can check the original tests for code examples:
+* [date_now.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/date_now.ab)
+
+## `date_posix`
+
+```ab
+import { date_posix } from "std/date"
+```
+
+```ab
+pub fun date_posix(format: Text = "", date: Text = "", utc: Bool = false): Text ? 
+```
+
+### EXPERIMENTAL
+
+Formats a date with a special format.
+
+If no date is specified, the current date is used.
+
+If no format is specified, "%FT%T%Z" format is used.
+
+For more info about format type "man date" on your shell or go to <https://www.gnu.org/software/coreutils/date>.
+
+Format :
+```
+%%     a literal %
+%a     locale's abbreviated weekday name (e.g., Sun)
+%A     locale's full weekday name (e.g., Sunday)
+%b     locale's abbreviated month name (e.g., Jan)
+%B     locale's full month name (e.g., January)
+%c     locale's date and time (e.g., Thu Mar  3 23:05:25 2005)
+%C     century; like %Y, except omit last two digits (e.g., 20)
+%d     day of month (e.g., 01)
+%D     date; same as %m/%d/%y
+%e     day of month, space padded; same as %_d
+%F     full date; like %+4Y-%m-%d
+%g     last two digits of year of ISO week number (see %G)
+%G     year of ISO week number (see %V); normally useful only with %V
+%h     same as %b
+%H     hour (00..23)
+%I     hour (01..12)
+%j     day of year (001..366)
+%k     hour, space padded ( 0..23); same as %_H
+%l     hour, space padded ( 1..12); same as %_I
+%m     month (01..12)
+%M     minute (00..59)
+%n     a newline
+%N     nanoseconds (000000000..999999999)
+%p     locale's equivalent of either AM or PM; blank if not known
+%P     like %p, but lower case
+%q     quarter of year (1..4)
+%r     locale's 12-hour clock time (e.g., 11:11:04 PM)
+%R     24-hour hour and minute; same as %H:%M
+%s     seconds since the Epoch (1970-01-01 00:00 UTC)
+%S     second (00..60)
+%t     a tab
+%T     time; same as %H:%M:%S
+%u     day of week (1..7); 1 is Monday
+%U     week number of year, with Sunday as first day of week (00..53)
+%V     ISO week number, with Monday as first day of week (01..53)
+%w     day of week (0..6); 0 is Sunday
+%W     week number of year, with Monday as first day of week (00..53)
+%x     locale's date representation (e.g., 12/31/99)
+%X     locale's time representation (e.g., 23:13:48)
+%y     last two digits of year (00..99)
+%Y     year
+%z     +hhmm numeric time zone (e.g., -0400)
+%:z    +hh:mm numeric time zone (e.g., -04:00)
+%::z   +hh:mm:ss numeric time zone (e.g., -04:00:00)
+%:::z  numeric time zone with : to necessary precision (e.g., -04, +05:30)
+%Z     alphabetic time zone abbreviation (e.g., EDT)
+```
+
+By default, date pads numeric fields with zeroes.  The following optional flags may follow '%':
+
+```
+-      (hyphen) do not pad the field
+_      (underscore) pad with spaces
+0      (zero) pad with zeros
++      pad with zeros, and put '+' before future years with >4 digits
+^      use upper case if possible
+#      use opposite case if possible
+```
+
+You can check the original tests for code examples:
+* [date_posix.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/date_posix.ab)
+
+--- ./0.4.0-alpha/stdlib/doc/math.md ---
+## `math_abs`
+
+```ab
+import { math_abs } from "std/math"
+```
+
+```ab
+pub fun math_abs(number: Num): Num 
+```
+
+Returns the absolute value of a number
+
+You can check the original tests for code examples:
+* [math_abs.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/math_abs.ab)
+
+## `math_ceil`
+
+```ab
+import { math_ceil } from "std/math"
+```
+
+```ab
+pub fun math_ceil(number: Num): Num 
+```
+
+Returns the smallest integer greater than or equal to a number
+
+You can check the original tests for code examples:
+* [math_ceil.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/math_ceil.ab)
+
+## `math_floor`
+
+```ab
+import { math_floor } from "std/math"
+```
+
+```ab
+pub fun math_floor(number: Num): Num 
+```
+
+Returns the largest integer less than or equal to a number
+
+You can check the original tests for code examples:
+* [math_floor.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/math_floor.ab)
+
+## `math_round`
+
+```ab
+import { math_round } from "std/math"
+```
+
+```ab
+pub fun math_round(number: Num): Num 
+```
+
+Returns a number, rounded to the nearest integer
+
+You can check the original tests for code examples:
+* [math_round.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/math_round.ab)
+
+## `math_sum`
+
+```ab
+import { math_sum } from "std/math"
+```
+
+```ab
+pub fun math_sum(list: [Num]): Num 
+```
+
+Sums an array's contents
+
+You can check the original tests for code examples:
+* [math_sum.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/math_sum.ab)
+
+--- ./0.4.0-alpha/stdlib/doc/array.md ---
+## `array_contains`
+
+```ab
+import { array_contains } from "std/array"
+```
+
+```ab
+pub fun array_contains(array, value) 
+```
+
+Checks if a value is in the array.
+
+You can check the original tests for code examples:
+* [array_contains_empty_num_array.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_empty_num_array.ab)
+* [array_contains_empty_text_array.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_empty_text_array.ab)
+* [array_contains_exact_match.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_exact_match.ab)
+* [array_contains_partial_match_with_expanded_element.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_partial_match_with_expanded_element.ab)
+* [array_contains_prefix_match.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_prefix_match.ab)
+* [array_contains_text_array.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_contains_text_array.ab)
+
+## `array_extract_at`
+
+```ab
+import { array_extract_at } from "std/array"
+```
+
+```ab
+pub fun array_extract_at(ref array, index) 
+```
+
+Removes an element at the index from the array, and returns it; if the
+index is negative or beyond the end, the return value is undefined, but
+the array will be unchanged.
+
+You can check the original tests for code examples:
+* [array_extract_at.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_extract_at.ab)
+
+## `array_find`
+
+```ab
+import { array_find } from "std/array"
+```
+
+```ab
+pub fun array_find(array, value): Num 
+```
+
+Returns index of the first value found in the specified array.
+
+If the value is not found, the function returns -1.
+
+You can check the original tests for code examples:
+* [array_find.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_find.ab)
+* [array_find_all.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_find_all.ab)
+
+## `array_find_all`
+
+```ab
+import { array_find_all } from "std/array"
+```
+
+```ab
+pub fun array_find_all(array, value): [Num] 
+```
+
+Searches for a value in an array and returns an array with the index of the various items.
+
+You can check the original tests for code examples:
+* [array_find_all.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_find_all.ab)
+
+## `array_first`
+
+```ab
+import { array_first } from "std/array"
+```
+
+```ab
+pub fun array_first(array) 
+```
+
+Returns the first element in the array; if the array is empty, the return
+value is undefined.
+
+You can check the original tests for code examples:
+* [array_first.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_first.ab)
+
+## `array_last`
+
+```ab
+import { array_last } from "std/array"
+```
+
+```ab
+pub fun array_last(array) 
+```
+
+Returns the last element in the array; if the array is empty, the return
+value is undefined.
+
+You can check the original tests for code examples:
+* [array_last.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_last.ab)
+
+## `array_pop`
+
+```ab
+import { array_pop } from "std/array"
+```
+
+```ab
+pub fun array_pop(ref array) 
+```
+
+Removes the last element from the array, and returns it; if the array
+is empty, the return value is undefined, but the array will be unchanged.
+
+You can check the original tests for code examples:
+* [array_pop.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_pop.ab)
+
+## `array_remove_at`
+
+```ab
+import { array_remove_at } from "std/array"
+```
+
+```ab
+pub fun array_remove_at(ref array: [], index: Num): Null 
+```
+
+Removes an element at the index from the array; if the index is negative
+or beyond the end, the return value is undefined, but the array will be
+unchanged.
+
+You can check the original tests for code examples:
+* [array_remove_at.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_remove_at.ab)
+
+## `array_shift`
+
+```ab
+import { array_shift } from "std/array"
+```
+
+```ab
+pub fun array_shift(ref array) 
+```
+
+Removes the first element from the array, and returns it; if the array
+is empty, the return value is undefined, but the array will be unchanged.
+
+You can check the original tests for code examples:
+* [array_shift.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/array_shift.ab)
+
+--- ./0.4.0-alpha/stdlib/doc/env.md ---
+## `bold`
+
+```ab
+import { bold } from "std/env"
+```
+
+```ab
+pub fun bold(message: Text): Text 
+```
+
+Returns a text as bold.
+
+You can check the original tests for code examples:
+* [env_bold.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_bold.ab)
+
+## `echo_colored`
+
+```ab
+import { echo_colored } from "std/env"
+```
+
+```ab
+pub fun echo_colored(message: Text, color: Num): Null 
+```
+
+Prints a text with a specified color.
+
+You can check the original tests for code examples:
+* [env_echo_colored.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_echo_colored.ab)
+
+## `echo_error`
+
+```ab
+import { echo_error } from "std/env"
+```
+
+```ab
+pub fun echo_error(message: Text, exit_code: Num = 1): Null 
+```
+
+Prints a text as a error and exits if the status code is greater than 0.
+
+You can check the original tests for code examples:
+* [env_echo_error.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_echo_error.ab)
+
+## `echo_info`
+
+```ab
+import { echo_info } from "std/env"
+```
+
+```ab
+pub fun echo_info(message: Text): Null 
+```
+
+Prints a text as a info message.
+
+You can check the original tests for code examples:
+* [env_echo_info.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_echo_info.ab)
+
+## `echo_success`
+
+```ab
+import { echo_success } from "std/env"
+```
+
+```ab
+pub fun echo_success(message: Text): Null 
+```
+
+Prints a text as a success message.
+
+You can check the original tests for code examples:
+* [env_echo_success.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_echo_success.ab)
+
+## `echo_warning`
+
+```ab
+import { echo_warning } from "std/env"
+```
+
+```ab
+pub fun echo_warning(message: Text): Null 
+```
+
+Prints a text as a warning message.
+
+You can check the original tests for code examples:
+* [env_echo_warning.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_echo_warning.ab)
+
+## `env_const_get`
+
+```ab
+import { env_const_get } from "std/env"
+```
+
+```ab
+pub fun env_const_get(name: Text): Text ? 
+```
+
+Gets a constant inside the shell session.
+
+You can check the original tests for code examples:
+* [env_const_get.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_const_get.ab)
+
+## `env_const_set`
+
+```ab
+import { env_const_set } from "std/env"
+```
+
+```ab
+pub fun env_const_set(name: Text, val: Text): Null ? 
+```
+
+Sets a constant inside the shell session.
+
+You can check the original tests for code examples:
+* [env_const_set.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_const_set.ab)
+
+## `env_file_load`
+
+```ab
+import { env_file_load } from "std/env"
+```
+
+```ab
+pub fun env_file_load(file: Text = ".env"): Null 
+```
+
+Loads the env file in the environment, using `xargs`.
+
+You can check the original tests for code examples:
+* [env_file_load.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_file_load.ab)
+
+## `env_var_get`
+
+```ab
+import { env_var_get } from "std/env"
+```
+
+```ab
+pub fun env_var_get(name: Text): Text ? 
+```
+
+Gets a constant inside the shell session.
+
+You can check the original tests for code examples:
+* [env_var_get.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_var_get.ab)
+
+## `env_var_load`
+
+```ab
+import { env_var_load } from "std/env"
+```
+
+```ab
+pub fun env_var_load(var: Text, file: Text = ".env"): Text 
+```
+
+Retrieves the value of an environment variable, optionally sourcing it from a file if not already set.
+
+You can check the original tests for code examples:
+* [env_var_load.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_var_load.ab)
+
+## `env_var_set`
+
+```ab
+import { env_var_set } from "std/env"
+```
+
+```ab
+pub fun env_var_set(name: Text, val: Text): Null ? 
+```
+
+Sets a constant inside the shell session.
+
+You can check the original tests for code examples:
+* [env_var_set.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_var_set.ab)
+
+## `env_var_test`
+
+```ab
+import { env_var_test } from "std/env"
+```
+
+```ab
+pub fun env_var_test(name: Text): Bool 
+```
+
+Checks if a variable inside the shell session exists.
+
+You can check the original tests for code examples:
+* [env_var_test.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_var_test.ab)
+
+## `env_var_unset`
+
+```ab
+import { env_var_unset } from "std/env"
+```
+
+```ab
+pub fun env_var_unset(name: Text): Null ? 
+```
+
+Removes a variable inside the shell session.
+
+You can check the original tests for code examples:
+* [env_var_unset.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_var_unset.ab)
+
+## `escaped`
+
+```ab
+import { escaped } from "std/env"
+```
+
+```ab
+pub fun escaped(text: Text): Text 
+```
+
+Escapes the text to be used with `printf`.
+
+You can check the original tests for code examples:
+* [env_escaped.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_escaped.ab)
+
+## `has_failed`
+
+```ab
+import { has_failed } from "std/env"
+```
+
+```ab
+pub fun has_failed(command: Text): Bool 
+```
+
+Checks if the command has failed.
+
+You can check the original tests for code examples:
+* [env_has_failed.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_has_failed.ab)
+
+## `input_confirm`
+
+```ab
+import { input_confirm } from "std/env"
+```
+
+```ab
+pub fun input_confirm(prompt: Text, default_yes: Bool = false): Bool 
+```
+
+Creates a confirm prompt (Yes/No), and returns true if the choice is Yes.
+
+"No" is the default choice, set default_yes to true for "Yes" as default choice.
+
+You can check the original tests for code examples:
+* [env_input_confirm.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_input_confirm.ab)
+
+## `input_hidden`
+
+```ab
+import { input_hidden } from "std/env"
+```
+
+```ab
+pub fun input_hidden(prompt: Text): Text 
+```
+
+Creates a prompt, hides any user input and returns the value.
+
+You can check the original tests for code examples:
+* [env_input_hidden.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_input_hidden.ab)
+
+## `input_prompt`
+
+```ab
+import { input_prompt } from "std/env"
+```
+
+```ab
+pub fun input_prompt(prompt: Text): Text 
+```
+
+Creates a prompt and returns the value.
+
+You can check the original tests for code examples:
+* [env_input_prompt.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_input_prompt.ab)
+
+## `is_command`
+
+```ab
+import { is_command } from "std/env"
+```
+
+```ab
+pub fun is_command(command: Text): Bool 
+```
+
+Checks if a command exists.
+
+You can check the original tests for code examples:
+* [env_is_command.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_is_command.ab)
+
+## `is_root`
+
+```ab
+import { is_root } from "std/env"
+```
+
+```ab
+pub fun is_root(): Bool 
+```
+
+Checks if the script is running with a user with root permission.
+
+You can check the original tests for code examples:
+* [env_is_root.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_is_root.ab)
+
+## `italic`
+
+```ab
+import { italic } from "std/env"
+```
+
+```ab
+pub fun italic(message: Text): Text 
+```
+
+Returns a text as italic.
+
+You can check the original tests for code examples:
+* [env_italic.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_italic.ab)
+
+## `printf`
+
+```ab
+import { printf } from "std/env"
+```
+
+```ab
+pub fun printf(format: Text, args: [Text] = [""]): Null 
+```
+
+`printf` the text following the arguments.
+
+You can check the original tests for code examples:
+* [env_printf.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_printf.ab)
+
+## `styled`
+
+```ab
+import { styled } from "std/env"
+```
+
+```ab
+pub fun styled(message: Text, style: Num, fg: Num, bg: Num): Text 
+```
+
+Prepares a text with formatting options for `printf`.
+
+You can check the original tests for code examples:
+* [env_styled.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_styled.ab)
+
+## `underlined`
+
+```ab
+import { underlined } from "std/env"
+```
+
+```ab
+pub fun underlined(message: Text): Text 
+```
+
+Returns a text as underlined.
+
+You can check the original tests for code examples:
+* [env_underlined.ab](https://github.com/amber-lang/amber/blob/0.4.0-alpha/src/tests/stdlib/env_underlined.ab)
+
+--- ./0.4.0-alpha/getting_started/new_changes.md ---
+## Breaking Changes
+
+This version introduces some changes that may impact existing codebases. We recommend reviewing the [Migration Guide](https://docs.amber-lang.com/getting_started/migration_guide) for a smooth transition. Notable changes include:
+- **Standard Library Updates:** Several functions have been renamed for better consistency and usability.
+- **Keyword Adjustments:** The keywords `unsafe` and `loop` for iterator loops have been renamed to improve code clarity and reduce potential ambiguity.
+
+## Standard Library
+- **`file_extract`:** Simplifies the process of extracting archive files ([#587](https://github.com/amber-lang/amber/pull/587)).
+- **`file_glob`:** Enables efficient pattern-based file searches ([#511](https://github.com/amber-lang/amber/pull/511)).
+- **`input_hidden`:** Allows for secure hidden input, ideal for passwords and secrets ([#492](https://github.com/amber-lang/amber/pull/492)).
+
+## New Features
+- **Windows Git Bash Support:** Amber now runs seamlessly on Git Bash for Windows users ([#501](https://github.com/amber-lang/amber/pull/501)).
+- **Built-in Functions:** New built-ins such as `len`, `exit`, and `lines` enhance scripting capabilities
+  ([#402](https://github.com/amber-lang/amber/pull/402) [#545](https://github.com/amber-lang/amber/pull/545) [#565](https://github.com/amber-lang/amber/pull/565)).
+- **Trailing Comma Support:** Import statements now support trailing commas, aligning with modern programming conventions ([#602](https://github.com/amber-lang/amber/pull/602)).
+- **Compile-Time Math for Ranges:** Enables mathematical operations on ranges at compile time ([#469](https://github.com/amber-lang/amber/pull/469)).
+- **Array Slicing:** Use syntax like `array[i..j]` to extract slices of arrays easily ([#628](https://github.com/amber-lang/amber/pull/628)).
+- **Constant Variables:** Define constants with the `const` keyword for immutability ([#423](https://github.com/amber-lang/amber/pull/423) [#630](https://github.com/amber-lang/amber/pull/630)).
+- **CLI Enhancements:** A revamped CLI introduces subcommand support for more intuitive interaction ([#600](https://github.com/amber-lang/amber/pull/600)).
+- **Generic Array Parameters:** Enables the definition of generic array types, improving flexibility in function definitions ([#472](https://github.com/amber-lang/amber/pull/472)).
+
+## Bug Fixes
+- **Escaping in `replace` Functions:** Improved handling of slashes in `replace` and `replace_one` ([#487](https://github.com/amber-lang/amber/pull/487)).
+- **Echo Functions:** Enhanced reliability and consistency of echo-related helper functions ([#491](https://github.com/amber-lang/amber/pull/491)).
+
+And many more changes that can be found on the [GitHub release page](https://github.com/amber-lang/amber/releases/tag/0.4.0-alpha).
+--- ./0.4.0-alpha/getting_started/usage.md ---
+The Amber CLI can be used as a runtime or as a compiler.
+
+## Command Line Interface
+
+The Amber CLI syntax uses subcommands, like the Git CLI:
+
+*This output is generated from the 0.4.0-alpha version.*
+```
+Usage: amber [INPUT] [ARGS]... [COMMAND]
+
+Commands:
+  eval   Execute Amber code fragment
+  run    Execute Amber script
+  check  Check Amber script for errors
+  build  Compile Amber script to Bash
+  docs   Generate Amber script documentation
+  comp   Generate Bash completion script
+  help   Print this message or the help of the given subcommand(s)
+
+Arguments:
+  [INPUT]    Input filename ('-' to read from stdin)
+  [ARGS]...  Arguments passed to Amber script
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+```
+
+### Running Amber Code
+
+The following command will simply execute `hello.ab` as a script file. Amber code will be compiled to Bash and then executed all in one go:
+
+```sh
+$ amber run hello.ab
+Hello world!
+```
+
+Alternatively, if the file contains a _shebang_ line and has the executable bit set, it can be run like this:
+
+```ab
+#!/usr/bin/env amber
+echo "Hello world"
+```
+
+```sh
+$ ./hello.ab
+Hello world
+```
+
+Additionally, command line arguments can be passed to the script:
+
+```ab
+#!/usr/bin/env amber
+main(args) {
+    for arg in args {
+        echo arg
+    }
+}
+```
+
+```sh
+$ ./args.ab 1 2 3
+1
+2
+3
+```
+
+If you want to run just a small code snippet, you can do that as well:
+
+```sh
+$ amber eval '
+import * from "std/text"
+echo uppercase("Hello world!")
+'
+HELLO WORLD!
+```
+
+### Compiling Amber Scripts
+
+There are times when you prefer to just compile Amber code to a script, for example when dealing with _cron jobs_:
+
+```sh
+$ amber build input.ab output.sh
+```
+
+You’ll notice that the compiled script is immediately callable; hence, there’s no need to add executable permissions using `chmod`, for instance. Amber grants the permission automatically.
+
+Furthermore, Amber adds a _shebang_ at the top of the compiled script. This enables you to run the code simply, without any additional commands:
+
+```sh
+$ ./output.sh
+```
+
+#### Postprocessors
+
+By default, Amber runs postprocessors `shfmt` and `bshchk` (if installed) on the compiled Bash script.  This functionality can be disabled with a `--no-proc` option:
+
+```sh
+$ amber build --no-proc=bshchk input.ab output.sh
+```
+
+#### Minification
+
+Additionally, the `--minify` option compresses the generated Bash code to reduce its size:
+
+```sh
+$ amber build --minify input.ab output.sh
+```
+
+### Generating Amber Documentation
+
+The following command extracts comments prefixed with `///` (triple slashes) from a single Amber file, and generates a Markdown file for documentation, by default in the `docs` subdirectory:
+
+```sh
+$ amber docs stdlib.ab
+```
+
+### Generating Bash Completion Scripts
+
+The following command generates a [Bash completion](https://en.wikipedia.org/wiki/Command-line_completion) script:
+
+```sh
+$ amber comp
+_amber() {
+    local i cur prev opts cmd
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+...
+```
+
+This can be sourced in the `.bashrc` file via command redirection, so that command completion works in all subsequently opened Bash shells.  Assuming the `amber` binary is on the system path:
+
+```sh
+$ cat ~/.bashrc
+...
+source <(amber comp)
+...
+```
+
+## Syntax Highlighting
+
+| Icon | Name | Location |
+|---|:----:|:-----:|
+| LOGO:hx | **Helix Editor** | [Native Support](https://docs.helix-editor.com/lang-support.html) |
+| LOGO:nova | **Nova** | [Nova extensions](https://extensions.panic.com/extensions/besya/besya.amber/) |
+| LOGO:vim | **Vim** | [Our extension repository](https://github.com/amber-lang/amber-vim) |
+| LOGO:vsc | **VS Code** | [VSC Marketplace](https://marketplace.visualstudio.com/items?itemName=Ph0enixKM.amber-language) or [Our extension repository](https://github.com/amber-lang/vsc-amber-extension) |
+| LOGO:zed | **Zed** | Zed extensions or [Our extension repository](https://github.com/amber-lang/zed-amber-extension) |
+--- ./0.4.0-alpha/getting_started/getting_started.md ---
+Welcome to the documentation of Amber the programming language! 🎉
+
+Here is a minimal hello world example:
+```ab
+echo "Hello world!"
+```
+
+## What is Amber?
+
+Amber is a programming language compiled into Bash Script. It was designed with a modern syntax, safety features, type safety and practical functionalities that Bash could not offer. The subsequent section will demonstrate how Amber embodies these characteristics.
+
+### Modern Syntax
+
+Amber is designed based on the ECMA script syntax. The goal was to create a syntax that any developer could feel comfortable with. Hence, Amber draws on features from languages like Rust and Python.
+
+### Safety Features
+
+When Bash command fails - it carries on with the code execution as if nothing has happened. This could lead to some serious problems and side effects that are irreversible.
+
+We dislike this behavior. This is why Amber will not compile if edge cases aren't handled - whether that involves displaying an error message to the user or failing silently.
+
+### Type Safety
+
+Amber comes with a straightforward type system that aids in identifying simple bugs and errors at compile time, yet it remains unobtrusive, allowing you to focus on what matters most in scripting: the logic.
+
+### Extra Features
+
+Amber supports things that are essential to developer like floating point arithmetic, a non-obscure way to handle arrays or even passing variables by reference instead of by copy. In addition to that Amber comes with a standard library that includes features like text trimming, summing all number in an array, splitting text and many more.
+--- ./0.4.0-alpha/getting_started/migration_guide.md ---
+This guide provides a step-by-step walkthrough for migrating code from 0.3.5-alpha to 0.4.0-alpha. The current version introduces several breaking changes. This document outlines the modifications, explains how to adapt your code to maintain the same behavior, and highlights updated features. In this guide we will cover two main categories of changes:
+1. **Language Features**: Changes and updates to the core language syntax and semantics.
+2. **Standard Library Updates**: Modifications to existing standard library functions and their usage.
+
+Follow along to ensure a smooth transition to the new version. Let’s get started!
+
+> WARNING: Besides of the changes listed below, there are also some breaking changes in the CLI interface. Please refer to the [usage](/getting_started/usage) section for more details.
+
+# Rename of `unsafe` Command Modifier
+
+The command can potentially fail. In the previous version the `unsafe` keyword was used to indicate that this command's failure should be ignored. In this release we renamed this keyword to `trust`, to better convey intent.
+
+```ab
+// Before
+unsafe $ ls -a $
+
+// After
+trust $ ls -a $
+```
+
+# Rename of `loop` Keyword for Iterator Loop
+
+To align with standards and improve readability, the `loop` keyword used for iterator loops has been replaced with `for`. This change ensures linguistic consistency and adopts a convention widely recognized across many programming languages.
+
+```ab
+// Before
+loop number in 0..=5 {
+    echo number
+}
+
+// After
+for number in 0..=5 {
+    echo number
+}
+```
+
+# New Builtins
+
+We've introduced new builtins `len`, `exit` and `lines`, replacing their equivalents in the standard library.
+
+## Len
+
+To emphasize that `len` supports multiple data types, such as text and arrays, it has been moved to a builtin.
+
+```ab
+// Before
+import { len } from "std/text"
+echo len("Hello there!")
+echo len([1, 2, 3])
+
+// After
+echo len("Hello there!")
+echo len([1, 2, 3])
+```
+
+## Exit
+
+Exit is used so often that we decided to move it as a separate builtin as well. It's implemented as a builtin statement which means that we can remove the parentheses.
+
+```ab
+// Before
+import { exit } from "std/env"
+exit(1)
+
+// After
+exit 1
+```
+
+## Lines
+
+Lines was not only moved into a builtin but also it was changed in functionality. Before it accepted a `Text` value which was then split by newline characters. In this version the newly added builtin accepts a path to file for which it returns each line.
+
+```ab
+// Before
+import { lines } from "std/text"
+import { file_read } from "std/fs"
+lines(file_read("/path/to/file"))
+
+// After
+lines("/path/to/file")
+```
+
+> DETAILS: This builtin is specifically optimized for direct use as an iterator in a `for` loop. When used this way, it does not load the entire file into memory but processes it line by line, ensuring efficient resource usage.
+
+For scenarios where lines was used on a `Text` value originating from sources other than a file, it is recommended to use the new standard library function `split_lines` instead.
+
+```ab
+// Before
+import { lines } from "std/text"
+lines(long_text)
+
+// After
+import { split_lines } from "std/text"
+split_lines(long_text)
+```
+
+# Standard Library
+
+In order to keep a consistent standard library function naming, most of the functions have been renamed with one exception.
+
+## Make Executable (`make_executable`)
+
+This function has been removed in favor of `file_chmod`. The same effect can be achieved when used with `+x` flag.
+
+```ab
+// Before
+import { make_executable } from "std/fs"
+make_executable("script.ab")
+
+// After
+import { file_chmod } from "std/fs"
+file_chmod("script.ab", "+x")
+```
+
+## Renamed Functions
+
+Below is a table of all the functions that have been renamed. Their functionality and definitions remain unchanged.
+
+### `std/array`
+
+New Name             |Old Name
+---------------------|---------------------
+array_contains       |includes
+array_extract_at     |extract_at
+array_find           |array_first_index
+array_find_all       |array_search
+array_first          |first
+array_last           |last
+array_pop            |pop
+array_remove_at      |remove_at
+array_shift          |shift
+
+### `std/date`
+
+New Name             |Old Name
+---------------------|---------------------
+date_now             |now
+
+### `std/env`
+
+New Name             |Old Name
+---------------------|---------------------
+bold                 |text_bold
+echo_colored         |color_echo
+echo_error           |error
+env_const_get        |shell_constant_get
+env_const_set        |shell_constant_set
+env_file_load        |load_env_file
+env_var_get          |shell_var_get
+env_var_load         |get_env_var
+env_var_set          |shell_var_set
+env_var_test         |shell_isset
+env_var_unset        |shell_unset
+escaped              |printf_escape
+input_confirm        |confirm
+input_prompt         |input
+italic               |text_italic
+styled               |text_shell
+underlined           |text_underlined
+
+### `std/fs`
+
+New Name             |Old Name
+---------------------|---------------------
+dir_create           |create_dir
+dir_exists           |dir_exist
+file_chmod           |make_executable
+file_chown           |change_owner
+file_exists          |file_exist
+file_extract         |extract
+file_glob            |glob
+file_glob_all        |glob_multiple
+symlink_create       |create_symbolic_link
+
+### `std/http`
+
+New Name             |Old Name
+---------------------|---------------------
+file_download        |download
+
+### `std/math`
+
+New Name             |Old Name
+---------------------|---------------------
+math_abs             |abs
+math_ceil            |ceil
+math_floor           |floor
+math_round           |round
+math_sum             |sum
+
+### `std/text`
+
+New Name             |Old Name
+---------------------|---------------------
+capitalized          |capitalize
+lowercase            |lower
+match_regex_any      |match_any_regex
+parse_number         |parse
+replace_one          |replace_once
+reversed             |reverse
+split_chars          |chars
+split_words          |words
+text_contains        |contains
+text_contains_all    |contains_all
+text_contains_any    |contains_any
+uppercase            |upper
+--- ./0.4.0-alpha/getting_started/installation.md ---
+Amber compiler currently works on:
+- Linux x86 and ARM
+- macOS x86 and ARM (Apple Silicon)
+- Nix (NixOS)
+
+## macOS / Linux
+
+Make sure that the operating system meets the following prerequisites
+
+- Bourne-again shell (Bash)
+- Basic calculator `bc` command (On Debian run `sudo apt install bc`)
+- Curl tool for downloading the installation script
+
+### Installation Options
+
+- **System-wide**
+```bash
+bash <(curl -sL "https://github.com/amber-lang/amber/releases/download/0.4.0-alpha/install.sh")
+```
+- **Local-user**
+```bash
+bash -- <(curl -sL "https://github.com/amber-lang/amber/releases/download/0.4.0-alpha/install.sh") --user
+```
+- **Package manager**
+
+<div style="width:250px;margin: 0 auto;">
+[![Packaging status](https://repology.org/badge/vertical-allrepos/amber-lang.svg)](https://repology.org/project/amber-lang/versions)
+</div>
+
+## Homebrew
+
+```bash
+brew install amber-lang/amber/amber-lang
+```
+
+## NixOS and Flakes
+
+The package contains all the required install scripts and dependencies. You can use the flake as:
+
+```nix
+{
+    inputs = {
+        # ...
+        amber.url = "github:amber-lang/Amber";
+    };
+
+    # then later with home manager for example
+    home.packages = [ inputs.amber.packages.${pkgs.system}.default ];
+}
+```
+
+The package is avaiable as `amber-lang` on [nixpkgs](https://github.com/NixOS/nixpkgs/pull/313774).
+
+While developing with Nix, the flake defines all dependencies for `nix develop` (or `direnv` if used).
+
+## Snap
+
+```bash
+sudo snap install amber-bash --classic
+```
+
+## Windows Support
+
+As windows does not come with bash installed it makes no sense to support it. Please install WSL 2 on your windows machine and install Linux version of Amber compiler inside.
+
+In order for it to work you may need to run the following code that pulls all the prerequisites.
+
+```sh
+sudo apt install curl bc
+sudo mkdir /opt /usr/local/bin
+```
+
+# External Tools Integrated
+
+Amber is currently an alpha-stage project, and to implement some features, we have chosen to integrate external tools.
+
+If these tools are available on your system, they will be executed at the end of the Bash compilation process.
+
+* [shfmt](https://github.com/patrickvane/shfmt): A shell formatter (sh/bash/mksh), It is recommended because Amber currently does not format the generated Bash code.
+* [bshchk](https://github.com/b1ek/bshchk): A runtime Bash dependency checker
+
+# Uninstallation
+
+You can uninstall Amber any time. To do this you can simply run the following code snippet.
+
+```sh
+bash -- <(curl -sL "https://github.com/amber-lang/amber/releases/download/0.4.0-alpha/uninstall.sh")
+```
