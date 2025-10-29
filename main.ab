@@ -134,18 +134,19 @@ main (arguments) {
                 uninstall(home_dir)
         }
 
-        // Guard for HOME variable during install attempt
-        len(script_args) == 0 and home_dir == "" :
-            echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
-
-        // Installation Mode
-        len(script_args) == 0 and not starts_with(script_name, home_dir + "/.local/bin") : 
-            install(home_dir)
+        // Install / Upgrade / Usage
+        len(script_args) == 0 {
+            if home_dir == "" :
+                echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=~' and run again.")
+            if not starts_with(script_name, home_dir + "/.local/bin") :
+                install(home_dir)
+            else :
+                echo "hi"
+        }
 
         // Default case: Normal execution
         else {
-            echo_info("Entering Normal Execution Mode...")
-            echo "Usage: {NAME} [options]"
+            
         }
     }
 }
