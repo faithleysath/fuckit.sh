@@ -67,7 +67,7 @@ fun install(home_dir: Text): Null {
     let bin_path = bin_dir + "/" + NAME
     if not dir_exists(bin_dir) {
         echo_info("Directory '{bin_dir}' does not exist. Creating it...")
-        dir_create(bin_dir) failed : echo_error("Failed to create directory '{bin_dir}'.")
+        dir_create(bin_dir)
     }
     // Step2: Check if bin_dir is in PATH
     let path_env = trust env_var_get("PATH")
