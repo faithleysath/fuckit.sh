@@ -1,0 +1,40 @@
+import { starts_with } from "std/text"
+import { env_var_get, echo_error, echo_warning } from "std/env"
+
+const VERSION = "0.1.0"
+
+fun install(home_dir: Text, script_name: Text) {
+    echo("Installing to home directory: " + home_dir)
+    // Installation logic goes here
+}
+
+main (args) {
+    // Handle zero arguments case (although this should not happen)
+    if len(args) < 1 :
+        echo_error("Oops, no arguments provided! It should not happen. But it did. Please visit https://fuckit.sh and report this issue.")
+    // First argument is the script name
+    let script_name = args[0]
+    // Remaining arguments are passed to the script
+    let script_args = args[1..len(args)]
+    // Get the home directory from environment variable
+    let home_dir = env_var_get("HOME") failed {
+        echo_warning("HOME environment variable is not set. Install Mode disabled.")
+    }
+    // Check if entering install mode or normal execution
+    if {
+        // Condition 1: Entering Installation Mode
+        // We must check home_dir is not null *before* using it.
+        len(script_args) == 0 and home_dir != null and not starts_with(script_name, home_dir + "/.local/bin") : install(home_dir, script_name)
+
+        // Condition 2: HOME not set during an install attempt
+        len(script_args) == 0 and home_dir == null {
+            echo_error("Install failed: HOME environment variable is not set. Try 'export HOME=path/to/your/home' and run again.")
+        }
+
+        // Default case: Normal execution
+        else {
+            echo("Entering Normal Execution Mode...")
+            // Call normal execution function, e.g., execute(script_args)
+        }
+    }
+}
