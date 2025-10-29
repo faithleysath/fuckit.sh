@@ -103,14 +103,10 @@ fun uninstall(home_dir: Text): Null {
     let bin_path = home_dir + "/.local/bin/" + NAME
     if file_exists(bin_path) {
         echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
-        $ rm {bin_path} $ failed {
-            echo_error("Failed to remove '{bin_path}'. Please check permissions.")
-            exit 1
-        }
+        $ rm {bin_path} $ failed : echo_error("Failed to remove '{bin_path}'. Please check permissions.")
         echo_success("fuckit.sh uninstalled successfully.")
-    } else {
+    } else :
         echo_warning("fuckit.sh is not installed, nothing to do.")
-    }
 }
 
 main (arguments) {
@@ -131,8 +127,12 @@ main (arguments) {
             echo VERSION
 
         // Uninstall
-        len(script_args) == 1 and script_args[0] == "uninstall" :
-            uninstall(home_dir)
+        len(script_args) == 1 and script_args[0] == "uninstall" {
+            if home_dir == "" :
+                echo_error("Uninstall failed: HOME environment variable is not set.")
+            else :
+                uninstall(home_dir)
+        }
 
         // Guard for HOME variable during install attempt
         len(script_args) == 0 and home_dir == "" :
