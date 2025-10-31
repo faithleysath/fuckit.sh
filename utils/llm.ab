@@ -1,23 +1,26 @@
-pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: Text): Text {
+pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: Text): Text? {
     let full_url = "{base_url}/chat/completions"
-    let payload = "
-    \{
-        \"model\": \"{model_name}\",
-        \"messages\": [
-            \{\"role\": \"system\", \"content\": \"{system_prompt}\"},
-            \{\"role\": \"user\", \"content\": \"{user_prompt}\"}
-        ]
-    }"
-    echo payload
-    return ""
+    let payload = "\{
+    \"model\": \"{model_name}\",
+    \"messages\": [
+        \{\"role\": \"system\", \"content\": \"{system_prompt}\"},
+        \{\"role\": \"user\", \"content\": \"{user_prompt}\"}
+    ]
+}"
+    let response = $curl "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" -d '{payload}'$?
+    return response
 }
 
 main {
-    let response = trust request_llm(
-        "https://api.example-llm.com/v1",
-        "example-model-001",
-        "your_api_key",
+    let response = request_llm(
+        "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "gemini-2.5-flash-lite",
+        "AIzaSyC0aNi4b3GhWvI198A6XEy1FFkIwcFuVNs",
         "You are a helpful assistant.",
-        "What is the capital of France?"
-    )
+        "Explain to me how AI works"
+    ) failed {
+        echo "Failed to get response from LLM"
+        exit 1
+    }
+    echo response
 }
