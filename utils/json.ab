@@ -3,7 +3,7 @@ pub fun safe_escape_json(text: Text): Text? {
 }
 
 pub fun extract_json_value(json_text: Text, path: Text): Text? {
-    return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split("."))' $?
+    return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split(".") | map(tonumber? // .))' $?
 }
 
 // Example usage

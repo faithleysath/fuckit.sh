@@ -1,0 +1,24 @@
+import { slice } from "std/text"
+
+pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, user_prompt: Text): Text? {
+    let full_url = "{base_url}{slice(base_url, -1) == "/" then "" else "/"}chat/completions"
+    
+    let payload = "\{\"model\": \"{model_name}\", \"messages\": [ \{\"role\": \"user\", \"content\": \"{user_prompt}\"} ]}"
+    
+    // 终极方案：通过管道将 payload 发送给 curl，避免所有引号问题
+    let response = $echo "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
+    return response
+}
+
+main {
+    let response = request_llm(
+        "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "gemini-2.0-flash",
+        "AIzaSyC0aNi4b3GhWvI198A6XEy1FFkIwcFuVNs",
+        "Explain to me how AI works"
+    ) failed {
+        echo "Failed to get response from LLM. Exit code: {status}"
+        exit 1
+    }
+    echo response
+}

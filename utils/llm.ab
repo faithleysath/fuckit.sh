@@ -1,14 +1,21 @@
+import { slice } from "std/text"
+import { safe_escape_json, extract_json_value } from "./json.ab"
+
 pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: Text): Text? {
-    let full_url = "{base_url}/chat/completions"
+    let full_url = "{base_url}{slice(base_url, -1) == "/" then "" else "/"}chat/completions"
+    echo "Requesting LLM at {full_url}"
+    let escaped_system_prompt = trust safe_escape_json(system_prompt)
+    let escaped_user_prompt = trust safe_escape_json(user_prompt)
     let payload = "\{
     \"model\": \"{model_name}\",
     \"messages\": [
-        \{\"role\": \"system\", \"content\": \"{system_prompt}\"},
-        \{\"role\": \"user\", \"content\": \"{user_prompt}\"}
+        \{\"role\": \"system\", \"content\": {escaped_system_prompt}},
+        \{\"role\": \"user\", \"content\": {escaped_user_prompt}}
     ]
 }"
-    let response = $curl "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" -d '{payload}'$?
-    return response
+    echo "Payload:\n{payload}"
+    let response = $echo "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
+    return trust extract_json_value(response, "choices.0.message.content")
 }
 
 main {
@@ -17,7 +24,7 @@ main {
         "gemini-2.5-flash-lite",
         "AIzaSyC0aNi4b3GhWvI198A6XEy1FFkIwcFuVNs",
         "You are a helpful assistant.",
-        "Explain to me how AI works"
+        "1 + 1 = ?"
     ) failed {
         echo "Failed to get response from LLM"
         exit 1
