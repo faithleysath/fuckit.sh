@@ -1,0 +1,69 @@
+import { is_command, env_var_get } from "std/env"
+import { file_exists, file_read } from "std/fs"
+import { array_contains } from "std/array"
+
+pub fun get_package_managers(): [Text] {
+    let managers = ["apt", "yum", "dnf", "zypper", "pacman", "emerge", "apk", "brew", "pkg", "nix-env", "guix", "snap", "flatpak"]
+    let available_managers = [Text]
+
+    for manager in managers {
+        if is_command(manager) {
+            available_managers += [manager]
+        }
+    }
+    return available_managers
+}
+
+pub fun get_shell_profiles(): [Text] {
+    let home_dir_from_env = trust env_var_get("HOME")
+    let home_dir = home_dir_from_env == "" then ($ echo ~ $ failed: "") else home_dir_from_env
+
+    if home_dir == "" {
+        return [Text]
+    }
+
+    let profiles = ["/.bashrc", "/.zshrc", "/.profile", "/.bash_profile", "/.config/fish/config.fish"]
+    let available_profiles = [Text]
+
+    for profile in profiles {
+        let full_path = home_dir + profile
+        if file_exists(full_path) {
+            available_profiles += [full_path]
+        }
+    }
+    return available_profiles
+}
+
+pub fun get_os_info(): Text? {
+    if is_command("sw_vers") {
+        return $ sw_vers $?
+    }
+    if file_exists("/etc/os-release") {
+        return file_read("/etc/os-release")?
+    }
+    return $ uname -a $?
+}
+
+pub fun get_current_path(): Text? {
+    return $ pwd $?
+}
+
+main {
+    echo "Available Package Managers:"
+    let managers = get_package_managers()
+    for manager in managers {
+        echo "  - {manager}"
+    }
+
+    echo "\nAvailable Shell Profiles:"
+    let profiles = get_shell_profiles()
+    for profile in profiles {
+        echo "  - {profile}"
+    }
+
+    echo "\nOperating System Info:"
+    echo "{trust get_os_info()}"
+
+    echo "\nCurrent Working Path:"
+    echo "{trust get_current_path()}"
+}
