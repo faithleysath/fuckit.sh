@@ -1,7 +1,7 @@
 import { slice } from "std/text"
 import { safe_escape_json, extract_json_value } from "./json.ab"
 
-pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: Text): Text? {
+pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: [Text], assistant_prompt: [Text]): Text? {
     let full_url = "{base_url}{slice(base_url, -1) == "/" then "" else "/"}chat/completions"
     let escaped_system_prompt = safe_escape_json(system_prompt)?
     let escaped_user_prompt = safe_escape_json(user_prompt)?
