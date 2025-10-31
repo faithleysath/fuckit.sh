@@ -4,25 +4,45 @@ import { safe_escape_json, extract_json_value } from "./json.ab"
 pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prompt: Text, user_prompt: [Text], assistant_prompt: [Text]): Text? {
     let full_url = "{base_url}{slice(base_url, -1) == "/" then "" else "/"}chat/completions"
     let escaped_system_prompt = safe_escape_json(system_prompt)?
-    let escaped_user_prompt = safe_escape_json(user_prompt)?
+    let message_json = "\{\"role\": \"system\", \"content\": {escaped_system_prompt}}"
+
+    let user_len = len(user_prompt)
+    let assistant_len = len(assistant_prompt)
+
+    // Loop through the assistant prompts, which is the shorter or equal length array.
+    for i in 0..assistant_len {
+        let escaped_user = safe_escape_json(user_prompt[i])?
+        let escaped_assistant = safe_escape_json(assistant_prompt[i])?
+        message_json += ", \{\"role\": \"user\", \"content\": {escaped_user}}"
+        message_json += ", \{\"role\": \"assistant\", \"content\": {escaped_assistant}}"
+    }
+    // If there are remaining user prompts, add them.
+    if user_len > assistant_len {
+        for j in assistant_len..user_len {
+            let escaped_user = safe_escape_json(user_prompt[j])?
+            message_json += ", \{\"role\": \"user\", \"content\": {escaped_user}}"
+        }
+    }
+
     let payload = "\{
     \"model\": \"{model_name}\",
-    \"messages\": [
-        \{\"role\": \"system\", \"content\": {escaped_system_prompt}},
-        \{\"role\": \"user\", \"content\": {escaped_user_prompt}}
-    ]
+    \"messages\": [ {message_json} ]
 }"
     let response = $echo "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
     return extract_json_value(response, "choices.0.message.content")?
 }
 
 main {
+    let user_prompts = ["Hello! Can you tell me a joke?", "That was funny! Tell me another one."]
+    let assistant_prompts = ["Why don't scientists trust atoms? Because they make up everything!"]
+
     let response = request_llm(
         "https://generativelanguage.googleapis.com/v1beta/openai/",
         "gemini-2.5-flash-lite",
         "YOUR_API_KEY",
         "You are a helpful assistant.",
-        "1 + 1 = ?"
+        user_prompts,
+        assistant_prompts
     ) failed {
         echo "Failed to get response from LLM"
         exit 1
