@@ -1,0 +1,22 @@
+pub fun safe_escape_json(text: Text): Text? {
+    return $ jq -rn --arg s "{text}" '\$s | @json' $? // already enclosed in quotes
+}
+
+pub fun extract_json_value(json_text: Text, path: Text): Text? {
+    return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split("."))' $?
+}
+
+// Example usage
+main {
+    let saying = "He said: \"Hi\"\nNew line"
+    let escaped = trust safe_escape_json(saying)
+    let json_str = "\{\"name\": \"John\", \"age\": 30, \"city\": \"New York\", \"details\": \{\"hobby\": \"guitar\", \"profession\": \"developer\", \"says\": {escaped}}}"
+    echo "Original String: {saying}"
+    echo "Escaped String: {escaped}"
+    echo "Original JSON: {json_str}"
+    echo "Pretty Printed JSON:\n{trust extract_json_value(json_str, "")}"
+    echo "Extracted Name: {trust extract_json_value(json_str, "name")}"
+    echo "Extracted Details: {trust extract_json_value(json_str, "details")}"
+    echo "Extracted Hobby: {trust extract_json_value(json_str, "details.hobby")}"
+    echo "Extracted Says: {trust extract_json_value(json_str, "details.says")}"
+}
