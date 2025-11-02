@@ -1,5 +1,6 @@
 import { split_chars } from "std/text"
-import { execute_python3_script } from "./system.ab"
+import { execute_python3_script, get_python_info } from "./system.ab"
+import { is_command } from "std/env"
 
 pub fun safe_escape_json_jq(text: Text): Text? {
     return $ jq -rn --arg s "{text}" '\$s | @json' $? // already enclosed in quotes
@@ -42,4 +43,24 @@ try:
     print(json.dumps(v) if isinstance(v,(dict,list)) else v)
 except:print('null')"
     return execute_python3_script(script, [json_text, path])?
+}
+
+pub fun safe_escape_json(text: Text): Text? {
+    if is_command("jq") {
+        return safe_escape_json_jq(text)?
+    }
+    if len(get_python_info()) > 0 {
+        return safe_escape_json_py(text)?
+    }
+    return safe_escape_json_fallback(text)
+}
+
+pub fun extract_json_value(json_text: Text, path: Text): Text? {
+    if is_command("jq") {
+        return extract_json_value_jq(json_text, path)?
+    }
+    if len(get_python_info()) > 0 {
+        return extract_json_value_py(json_text, path)?
+    }
+    fail 1 // No fallback available for extraction
 }
