@@ -66,7 +66,7 @@ pub fun get_python_info(): [Text] {
     return available_pythons
 }
 
-pub fun execute_python3_script(script: Text): Text? {
+pub fun execute_python3_script(script: Text, args: [Text] = [Text]): Text? {
     let available_pythons = get_python_info()
     if len(available_pythons) == 0 : fail 1
     let python_cmd_version = split(available_pythons[0], " ")
@@ -74,5 +74,11 @@ pub fun execute_python3_script(script: Text): Text? {
     let python_version = python_cmd_version[1]
     // Check if Python version is at least 3.6
     if compare_versions(python_version, "3.6")? < 0 : fail 1
-    return $ {python_cmd} -c "{script}" $?
+    let full_command = "{python_cmd} -c '{script}'"
+    for arg in args {
+        // Safely quote each argument
+        let quoted_arg = $ printf "%q" "{arg}" $?
+        full_command += " {quoted_arg}"
+    }
+    return $ sh -c "{full_command}" $?
 }
