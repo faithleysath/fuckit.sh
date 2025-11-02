@@ -38,29 +38,35 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
         }
 
         assistant_history += [assistant_response]
-        echo_success("Assistant responded:")
-        echo "---"
-        echo assistant_response
-        echo "---"
 
         // Step 4: Security check and execution
         let is_safe = check_llm_output(assistant_response)
+
         let should_execute = false
         if is_safe {
             should_execute = true
+            echo_success("The script passed the security check.")
         } else {
-            should_execute = input_confirm("The script is not recognized as safe. Do you want to execute it?", false)
+            echo assistant_response
+            echo_warning("We cannot guarantee the safety of the above script. Please review it carefully.")
+            should_execute = input_confirm("Do you want to execute it anyway?", false)
         }
 
         let execution_context = ""
         if should_execute {
-            echo_info("Executing script...")
+            if not is_safe {
+                echo_info("Executing in 3 seconds... Press Ctrl+C to cancel.")
+                trust $ sleep 3 $
+            }
+            let scode = 0
             let output = $ set -o pipefail; bash -c "{assistant_response}" | tee /dev/tty $ failed {
+                scode = status
                 if status == 201 {
-                    echo_info("Session ended by assistant (exit 201).")
+                    echo_info("Session ended by assistant because he thinks the task is complete.")
                     exit 0
                 }
                 if status == 202 {
+                    echo_info("Execution finished with suggestion to end the session.")
                     if input_confirm("Assistant suggested ending the session. End now?", true) {
                         exit 0
                     }
@@ -69,14 +75,20 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
                 }
             }
             echo_success("Execution finished.")
-            execution_context = "Command executed with exit code: {status}.\nOutput:\n---\n{output}\n---"
+            execution_context = "Command executed with exit code: {scode}.\nOutput:\n---\n{output}\n---"
         } else {
             echo_warning("Execution skipped by user.")
             execution_context = "User chose not to execute the script."
         }
 
         // Step 5: Get next user input
-        let next_user_input = input_prompt("You: ")
+        let next_user_input = ""
+        loop {
+            next_user_input = input_prompt("You: ")
+            if next_user_input != "" {
+                break
+            }
+        }
         if next_user_input == "exit" or next_user_input == "quit" {
             break
         }
