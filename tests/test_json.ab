@@ -2,15 +2,19 @@ import * from "../utils/json.ab"
 
 // Example usage
 main {
-    let saying = "He said: \"Hi\"\nNew line"
+    let saying = "He said: \"Hi\"\nNew line with\\ a backslash"
+    
+    echo "--- With jq ---"
     let escaped = trust safe_escape_json(saying)
-    let json_str = "\{\"name\": \"John\", \"age\": 30, \"city\": \"New York\", \"details\": \{\"hobby\": \"guitar\", \"profession\": \"developer\", \"says\": {escaped}}}"
-    echo "Original String: {saying}"
-    echo "Escaped String: {escaped}"
-    echo "Original JSON: {json_str}"
-    echo "Pretty Printed JSON:\n{trust extract_json_value(json_str, "")}"
-    echo "Extracted Name: {trust extract_json_value(json_str, "name")}"
-    echo "Extracted Details: {trust extract_json_value(json_str, "details")}"
-    echo "Extracted Hobby: {trust extract_json_value(json_str, "details.hobby")}"
-    echo "Extracted Says: {trust extract_json_value(json_str, "details.says")}"
+    echo "Original: {saying}"
+    echo "Escaped:  {escaped}"
+
+    echo "\n--- Without jq ---"
+    let escaped_no_jq = safe_escape_json_no_jq(saying)
+    echo "Original: {saying}"
+    echo "Escaped:  {escaped_no_jq}"
+
+    echo "\n--- JSON Parsing ---"
+    let json_str = "\{\"says\": {escaped_no_jq}}"
+    echo "Extracted Says: {trust extract_json_value(json_str, "says")}"
 }
