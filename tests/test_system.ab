@@ -17,7 +17,7 @@ main {
     echo "{trust get_os_info()}"
 
     echo "\nCurrent Working Path:"
-    echo "{trust get_current_path()}"
+    echo "{get_current_path()}"
 
     echo "\nAvailable Python Versions:"
     let pythons = get_python_info()

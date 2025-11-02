@@ -36,18 +36,20 @@ pub fun get_shell_profiles(): [Text] {
     return available_profiles
 }
 
-pub fun get_os_info(): Text? {
-    if is_command("sw_vers") {
-        return $ sw_vers $?
-    }
-    if file_exists("/etc/os-release") {
-        return file_read("/etc/os-release")?
-    }
-    return $ uname -a $?
+pub fun get_os_info(): Text {
+    let info = ""
+    if is_command("sw_vers"):
+        info += (trust $ sw_vers 2>/dev/null $) + "\n"
+
+    if file_exists("/etc/os-release"):
+        info += (trust $ cat /etc/os-release 2>/dev/null $) + "\n"
+
+    info += trust $ uname -a 2>/dev/null $
+    return info
 }
 
-pub fun get_current_path(): Text? {
-    return $ pwd $?
+pub fun get_current_path(): Text {
+    return trust $ pwd $
 }
 
 pub fun get_python_info(): [Text] {
