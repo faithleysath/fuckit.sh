@@ -5,26 +5,21 @@ pub fun safe_escape_json(text: Text): Text? {
 }
 
 pub fun safe_escape_json_no_jq(text: Text): Text {
-    if text == "" {
+    if text == "" :
         return "\"\""
-    }
 
     let chars = split_chars(text)
     let escaped_text = ""
     for char in chars {
         if {
-            char == "\"" {
+            char == "\"" :
                 escaped_text += "\\\""
-            }
-            char == "\\" {
+            char == "\\" :
                 escaped_text += "\\\\"
-            }
-            char == "\n" {
+            char == "\n" :
                 escaped_text += "\\n"
-            }
-            else {
+            else :
                 escaped_text += char
-            }
         }
     }
     return "\"{escaped_text}\""
