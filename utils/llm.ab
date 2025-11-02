@@ -31,21 +31,3 @@ pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prom
     let response = $echo "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
     return extract_json_value(response, "choices.0.message.content")?
 }
-
-main {
-    let user_prompts = ["Hello! Can you tell me a joke?", "That was funny! Tell me another one."]
-    let assistant_prompts = ["Why don't scientists trust atoms? Because they make up everything!"]
-
-    let response = request_llm(
-        "https://generativelanguage.googleapis.com/v1beta/openai/",
-        "gemini-2.5-flash-lite",
-        "YOUR_API_KEY",
-        "You are a helpful assistant.",
-        user_prompts,
-        assistant_prompts
-    ) failed {
-        echo "Failed to get response from LLM"
-        exit 1
-    }
-    echo response
-}

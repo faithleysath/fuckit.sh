@@ -1,0 +1,20 @@
+import * from "../utils/llm.ab"
+
+main {
+    let user_prompts = ["Hello! Can you tell me a joke?", "That was funny! Tell me another one."]
+    let assistant_prompts = ["Why don't scientists trust atoms? Because they make up everything!"]
+
+    let response = request_llm(
+        "https://api.openai.com/v1/", // Example with OpenAI endpoint
+        "gpt-4",
+        "YOUR_API_KEY", // IMPORTANT: Replace with your actual API key to run this test
+        "You are a helpful assistant.",
+        user_prompts,
+        assistant_prompts
+    ) failed {
+        echo "Failed to get response from LLM"
+        exit 1
+    }
+    echo "LLM Response:"
+    echo response
+}

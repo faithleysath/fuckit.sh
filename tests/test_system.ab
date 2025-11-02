@@ -1,0 +1,21 @@
+import * from "../utils/system.ab"
+
+main {
+    echo "Available Package Managers:"
+    let managers = get_package_managers()
+    for manager in managers {
+        echo "  - {manager}"
+    }
+
+    echo "\nAvailable Shell Profiles:"
+    let profiles = get_shell_profiles()
+    for profile in profiles {
+        echo "  - {profile}"
+    }
+
+    echo "\nOperating System Info:"
+    echo "{trust get_os_info()}"
+
+    echo "\nCurrent Working Path:"
+    echo "{trust get_current_path()}"
+}
