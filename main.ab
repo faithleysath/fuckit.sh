@@ -39,32 +39,12 @@ import { array_contains } from "std/array"
 import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
 import { file_download } from "std/http"
 import { request_llm} from "./utils/llm.ab"
+import { compare_versions } from "./utils/utils.ab"
 
 // Get the home directory from environment variable
 let home_dir = trust env_var_get("HOME")
 if home_dir == "" :
     echo_warning("HOME environment variable is not set. Try 'export HOME=~' and run again. Add to your shell profile to make it permanent.")
-
-fun compare_versions(v1: Text, v2: Text): Num? {
-    let parts1 = split(v1, ".")
-    let parts2 = split(v2, ".")
-
-    let len1 = len(parts1)
-    let len2 = len(parts2)
-
-    let max_len = len1 > len2 then len1 else len2
-
-    for i in 0..max_len {
-        // If part is missing, treat it as 0
-        let num1 = i < len1 then parse_number(parts1[i])? else 0
-        let num2 = i < len2 then parse_number(parts2[i])? else 0
-
-        if num1 > num2 : return 1
-        if num1 < num2 : return -1
-    }
-
-    return 0
-}
 
 fun install(): Null {
     // First, check if already installed, just check version command directly

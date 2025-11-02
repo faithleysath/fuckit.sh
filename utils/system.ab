@@ -1,6 +1,8 @@
 import { is_command, env_var_get } from "std/env"
 import { file_exists, file_read } from "std/fs"
 import { array_contains } from "std/array"
+import { split } from "std/text"
+import { compare_versions } from "./utils.ab"
 
 pub fun get_package_managers(): [Text] {
     let managers = ["apt", "yum", "dnf", "zypper", "pacman", "emerge", "apk", "brew", "pkg", "nix-env", "guix", "snap", "flatpak"]
@@ -55,9 +57,22 @@ pub fun get_python_info(): [Text] {
     for cmd in python_commands {
         if is_command(cmd) {
             let version_output = trust $ {cmd} --version 2>&1 $
-            let version = trust $ echo "{version_output}" | tr -d '\n\r' $
+            let version = trust $ echo "{version_output}" | tr -d '\n\r' | sed 's/^.* //' $
             available_pythons += ["{cmd} {version}"]
         }
     }
     return available_pythons
+}
+
+pub fun execute_python3_script(script: Text): Text? {
+    let available_pythons = get_python_info()
+    if len(available_pythons) == 0 : fail 1
+    let python_cmd_version = split(available_pythons[0], " ")
+    let python_cmd = python_cmd_version[0]
+    let python_version = python_cmd_version[1]
+    // Check if Python version is at least 3.6
+    if compare_versions(python_version, "3.6") < 0 : fail 1
+    return ${python_cmd} << 'EOF'
+{script}
+EOF$?
 }
