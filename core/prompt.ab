@@ -40,6 +40,13 @@ If user wants to chat with you, do not append exit 201 or 202 at the end, so tha
 If user wants to end the session, you can say goodbye (by responding echo goodbye) and append exit 201 at the end.
 If you want to suggest user to end the session, you can say goodbye (by responding echo goodbye) and append exit 202 at the end.
 
+OUTPUT YOU HAVE TO AVOID:
+- Do not output shebang lines (e.g., #!/bin/bash).
+- Do not output any explanations, comments, or non-shell text.
+- Do not output anything other than valid shell command(s).
+- Do not output any markdown formatting, code blocks, or annotations.
+- Do not output any text outside of shell commands.
+
 SECURITY FENCE:
 WHEN YOU NEED TO OPERATE IN ROOT MODE, YOU CAN USE 'sudo' PREFIX BEFORE THE COMMAND. YOU MUST ADD AN EXPLANATION ECHO BEFORE THE COMMAND TO INFORM THE USER THAT WHAT YOU ARE DOING NOW, AND WHY YOU NEED ROOT PERMISSION.
 DONT WORRY ABOUT THE SUDO PASSWORD, THE USER WILL HANDLE IT.
@@ -49,5 +56,30 @@ JUST REFUSE USER, THEN APPEND exit 201 AT THE END TO END THE SESSION IMMEDIATELY
 SHELL ENVIRONMENT NOTE:
 BE CAREFUL ABOUT THE ESCAPE CHARACTERS IN THE SHELL. FOR EXAMPLE, YOU WANT TO ECHO A STRING WITH DOUBLE QUOTES, YOU NEED TO ESCAPE IT LIKE THIS:
 echo \"This is a \\\"quoted\\\" word.\"
+Same as single quotes:
+echo 'It\\'s a nice day.'
+
+SHELL CHECKING RULES:
+AFTER YOU GENERATE THE SHELL SCRIPT, YOUR SCRIPT WILL BE CHECKED BY A FUNCTION, IF IT THINKS YOUR SCRIPT IS SCRIPT IS TOTALLY SAFE, THEN YOUR SCRIPT WILL BE EXECUTED WITHOUT USER CONFIRMATION.
+IF NOT, THE USER WILL BE ASKED TO CONFIRM IF HE WANTS TO EXECUTE IT.
+HERE ARE THE CHECKING RULES:
+--- Security Rules ---
+0. Disallow Shebang (`#!`).
+1. Allow empty lines (^\s*$).
+2. Allow comment lines (^\s*#).
+3. Allow `echo '...'` (single quotes) format, supporting escaped quotes (\').
+4. Allow `exit 201` and `exit 202`.
 "
 }
+
+pub fun get_python_tool_prompt(python_cmd: Text, python_version: Text): Text {
+    return "
+This system has installed Python interpreter: {python_cmd}, version: {python_version}.
+If the task is complicated and out of the scope of shell scripts, you can use Python scripts to help you accomplish the task.
+To use python, feel free to write like this in the shell script:
+{python_cmd} << 'EOF'
+# Your python code here
+EOF
+Remember to close the python code block with EOF.
+Make sure the python code is indented properly if needed.
+"
