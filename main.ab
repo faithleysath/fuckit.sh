@@ -7,8 +7,7 @@ const URL = "http://host.docker.internal:5500/main.sh"
 const USAGE = "
 
 "
-
-// Check for dependencies first, need _ to avoid stray semicolon. If you can't understand, just keep it as is. It's not a bug, just to fit the compiler's behavior.
+// Dependency Checks
 // check bc
 $ command -v bc > /dev/null 2>&1 $ failed {
     trust $ echo -e "\\033[0;31mDependency check failed: 'bc' command not found. Please install 'bc' and try again.\\033[0m" >&2 $
@@ -20,19 +19,7 @@ $ command -v bc > /dev/null 2>&1 $ failed {
     trust $ echo "  - Alpine:        apk add bc" >&2 $
     exit 1
 }
-// check jq
-$ command -v jq > /dev/null 2>&1 $ failed {
-    trust $ echo -e "\\033[0;31mDependency check failed: 'jq' command not found. Please install 'jq' and try again.\\033[0m" >&2 $
-    trust $ echo "  - Debian/Ubuntu: sudo apt-get install jq" >&2 $
-    trust $ echo "  - RedHat/CentOS: sudo yum install jq" >&2 $
-    trust $ echo "  - Fedora:        sudo dnf install jq" >&2 $
-    trust $ echo "  - Arch Linux:    sudo pacman -S jq" >&2 $
-    trust $ echo "  - openSUSE:      sudo zypper install jq" >&2 $
-    trust $ echo "  - Alpine:        apk add jq" >&2 $
-    trust $ echo "  - MacOS (Homebrew): brew install jq" >&2 $
-    trust $ echo "  - Manual Download: https://github.com/jqlang/jq/releases" >&2 $
-    exit 1
-}
+
 // check curl
 $ command -v curl > /dev/null 2>&1 $ failed {
     trust $ echo -e "\\033[0;31mDependency check failed: 'curl' command not found. Please install 'curl' and try again.\\033[0m" >&2 $
@@ -56,7 +43,7 @@ import { request_llm} from "./utils/llm.ab"
 // Get the home directory from environment variable
 let home_dir = trust env_var_get("HOME")
 if home_dir == "" :
-    echo_error("HOME environment variable is not set. Try 'export HOME=~' and run again. Add to your shell profile to make it permanent.")
+    echo_warning("HOME environment variable is not set. Try 'export HOME=~' and run again. Add to your shell profile to make it permanent.")
 
 fun compare_versions(v1: Text, v2: Text): Num? {
     let parts1 = split(v1, ".")
@@ -94,6 +81,8 @@ fun install(): Null {
             exit 0
         }
     }
+    if home_dir == "" :
+        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
 
     // Installation / Update process (they are the same here)
     // Step1: Check if the dir exists
@@ -134,6 +123,8 @@ fun install(): Null {
 }
 
 fun uninstall(): Null {
+    if home_dir == "" :
+        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
     let bin_path = home_dir + "/.local/bin/" + NAME
     if file_exists(bin_path) {
         echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
