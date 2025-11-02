@@ -1,0 +1,84 @@
+import { env_var_get, echo_error, echo_warning, echo_info, echo_success, input_prompt, input_confirm } from "std/env"
+import { request_llm } from "../utils/llm.ab"
+import { get_core_prompt } from "./prompt.ab"
+import { check_llm_output } from "../utils/security.ab"
+
+pub fun start_chat_session(initial_prompt: [Text]): Null {
+    // Step 1: Load configuration from environment variables
+    let base_url = trust env_var_get("FUCKIT_BASE_URL")
+    let api_key = trust env_var_get("FUCKIT_API_KEY")
+    let model_name = trust env_var_get("FUCKIT_MODEL_NAME")
+
+    if base_url == "" or api_key == "" or model_name == "" {
+        echo_error("LLM configuration is missing. Please set FUCKIT_BASE_URL, FUCKIT_API_KEY, and FUCKIT_MODEL_NAME environment variables.")
+        exit 1
+    }
+
+    // Step 2: Initialize histories and system prompt
+    let user_history = [Text]
+    let assistant_history = [Text]
+    let system_prompt = get_core_prompt()
+
+    // Step 3: Start the interactive chat loop
+    let current_user_prompt = "{initial_prompt}"
+    loop {
+        user_history += [current_user_prompt]
+
+        echo_info("Assistant is thinking...")
+        let assistant_response = request_llm(base_url, model_name, api_key, system_prompt, user_history, assistant_history) failed {
+            echo_warning("Failed to get response from LLM. Please check your configuration and network.")
+            // Ask user if they want to retry
+            if input_confirm("Do you want to retry?", true) {
+                // Remove the last failed prompt from history before retrying
+                user_history = user_history[0..len(user_history)-1]
+                continue
+            } else {
+                exit 1
+            }
+        }
+
+        assistant_history += [assistant_response]
+        echo_success("Assistant responded:")
+        echo "---"
+        echo assistant_response
+        echo "---"
+
+        // Step 4: Security check and execution
+        let is_safe = check_llm_output(assistant_response)
+        let should_execute = is_safe or input_confirm("The script is not recognized as safe. Do you want to execute it?", false)
+
+        let execution_context = ""
+        if should_execute {
+            echo_info("Executing script...")
+            let output = $ bash -c "{assistant_response}" $ failed {
+                echo_warning("Script execution failed with status: {status}")
+            }
+            if status == 201 {
+                echo_info("Session ended by assistant (exit 201).")
+                exit 0
+            }
+            if status == 202 {
+                if input_confirm("Assistant suggested ending the session. End now?", true) {
+                    exit 0
+                }
+            }
+            echo_success("Execution finished.")
+            if output != "" {
+                echo_info("Output:")
+                echo output
+            }
+            execution_context = "Command executed with exit code: {status}.\nOutput:\n---\n{output}\n---"
+        } else {
+            echo_warning("Execution skipped by user.")
+            execution_context = "User chose not to execute the script."
+        }
+
+        // Step 5: Get next user input
+        let next_user_input = input_prompt("You: ")
+        if next_user_input == "exit" or next_user_input == "quit" {
+            break
+        }
+        current_user_prompt = "{execution_context}\n\nUser's next instruction: {next_user_input}"
+    }
+    echo_info("Session ended by user.")
+}

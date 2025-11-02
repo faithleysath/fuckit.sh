@@ -38,6 +38,7 @@ import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
 import { request_llm} from "./utils/llm.ab"
 import { install, uninstall } from "./core/installer.ab"
+import { start_chat_session } from "./core/chat.ab"
 
 // Get the home directory from environment variable
 let home_dir = trust env_var_get("HOME")
@@ -73,8 +74,7 @@ main (arguments) {
 
         // Default case: Normal execution
         else {
-            // Here goes the AI interaction logic
-
+            start_chat_session(script_args)
         }
     }
 }
