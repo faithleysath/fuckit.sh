@@ -48,13 +48,18 @@ pub fun check_llm_output(script_content: Text): Bool {
 }
 
 fun run_test(description: Text, script: Text, expected: Bool): Bool {
+    echo "\n- Running test: {description}"
+    echo "======CONTENT======"
+    echo script
+    echo "======CONTENT======"
     let actual = check_llm_output(script)
     if actual == expected {
-        echo "✅ PASS: {description}"
+        echo "✅ PASS"
+        echo "   Expected: {expected}, Got: {actual}"
         return true
     } else {
-        echo "❌ FAIL: {description}"
-        echo "     Expected: {expected}, Got: {actual}"
+        echo "❌ FAIL"
+        echo "   Expected: {expected}, Got: {actual}"
         return false
     }
 }
