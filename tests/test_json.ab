@@ -1,36 +1,90 @@
 import * from "../utils/json.ab"
+import { is_command } from "std/env"
 
-// Example usage
 main {
-    echo "--- Testing safe_escape_json ---"
     let saying = "He said: \"Hi\"\nNew line with\\ a backslash"
     let expected_escape = "\"He said: \\\"Hi\\\"\\nNew line with\\\\ a backslash\""
-    
-    let escaped = trust safe_escape_json(saying)
-    echo "Original: {saying}"
-    echo "Escaped:  {escaped}"
-    if escaped != expected_escape {
-        echo "Error: Unexpected escape result!"
-        exit 1
-    }
-    echo "Escape test passed!"
+    let json_str = "\{\"says\": {expected_escape}, \"nested\": \{\"a\": [1, 2]}}"
 
-    echo "\n--- Testing extract_json_value ---"
-    let json_str = "\{\"says\": {escaped}, \"nested\": \{\"a\": [1, 2]}}"
-    echo "JSON: {json_str}"
+    echo "--- Testing Individual Functions ---"
 
-    let extracted_says = trust extract_json_value(json_str, "says")
-    echo "Extracted 'says': {extracted_says}"
-    if extracted_says != saying {
-        echo "Error: Unexpected extraction result for 'says'!"
-        exit 1
+    // Test jq escape
+    if is_command("jq") {
+        let escaped_jq = trust safe_escape_json_jq(saying)
+        if escaped_jq != expected_escape {
+            echo "Error: safe_escape_json_jq failed!"
+            exit 1
+        }
+        echo "safe_escape_json_jq: PASSED"
+    } else {
+        echo "safe_escape_json_jq: SKIPPED (jq not found)"
     }
 
-    let extracted_nested = trust extract_json_value(json_str, "nested.a.1")
-    echo "Extracted 'nested.a.1': {extracted_nested}"
-    if extracted_nested != "2" {
-        echo "Error: Unexpected extraction result for 'nested.a.1'!"
+    // Test python escape
+    let escaped_py = trust safe_escape_json_py(saying)
+    if escaped_py != expected_escape {
+        echo "Error: safe_escape_json_py failed!"
         exit 1
     }
-    echo "Extraction tests passed!"
+    echo "safe_escape_json_py: PASSED"
+
+    // Test fallback escape
+    let escaped_fallback = safe_escape_json_fallback(saying)
+    if escaped_fallback != expected_escape {
+        echo "Error: safe_escape_json_fallback failed!"
+        exit 1
+    }
+    echo "safe_escape_json_fallback: PASSED"
+
+    // Test jq extract
+    if is_command("jq") {
+        let extracted_jq = trust extract_json_value_jq(json_str, "says")
+        if extracted_jq != saying {
+            echo "Error: extract_json_value_jq (says) failed!"
+            exit 1
+        }
+        let extracted_nested_jq = trust extract_json_value_jq(json_str, "nested.a.1")
+        if extracted_nested_jq != "2" {
+            echo "Error: extract_json_value_jq (nested) failed!"
+            exit 1
+        }
+        echo "extract_json_value_jq: PASSED"
+    } else {
+        echo "extract_json_value_jq: SKIPPED (jq not found)"
+    }
+
+    // Test python extract
+    let extracted_py = trust extract_json_value_py(json_str, "says")
+    if extracted_py != saying {
+        echo "Error: extract_json_value_py (says) failed!"
+        exit 1
+    }
+    let extracted_nested_py = trust extract_json_value_py(json_str, "nested.a.1")
+    if extracted_nested_py != "2" {
+        echo "Error: extract_json_value_py (nested) failed!"
+        exit 1
+    }
+    echo "extract_json_value_py: PASSED"
+
+    echo "\n--- Testing Wrapper Functions ---"
+    let escaped_wrapper = trust safe_escape_json(saying)
+    if escaped_wrapper != expected_escape {
+        echo "Error: safe_escape_json wrapper failed!"
+        exit 1
+    }
+    echo "safe_escape_json (wrapper): PASSED"
+
+    let extracted_wrapper = trust extract_json_value(json_str, "says")
+    if extracted_wrapper != saying {
+        echo "Error: extract_json_value wrapper (says) failed!"
+        exit 1
+    }
+    let extracted_nested_wrapper = trust extract_json_value(json_str, "nested.a.1")
+    if extracted_nested_wrapper != "2" {
+        echo "Error: extract_json_value wrapper (nested) failed!"
+        exit 1
+    }
+    echo "extract_json_value (wrapper): PASSED"
+
+    echo "\nAll tests passed!"
 }
