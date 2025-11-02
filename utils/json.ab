@@ -47,7 +47,13 @@ except:print('null')"
 
 pub fun safe_escape_json(text: Text): Text? {
     if is_command("jq") {
-        return safe_escape_json_jq(text)?
+        let result = safe_escape_json_jq(text) failed {
+            if len(get_python_info()) > 0 {
+                return safe_escape_json_py(text)?
+            }
+            return safe_escape_json_fallback(text)
+        }
+        return result
     }
     if len(get_python_info()) > 0 {
         return safe_escape_json_py(text)?
@@ -57,7 +63,13 @@ pub fun safe_escape_json(text: Text): Text? {
 
 pub fun extract_json_value(json_text: Text, path: Text): Text? {
     if is_command("jq") {
-        return extract_json_value_jq(json_text, path)?
+        let result = extract_json_value_jq(json_text, path) failed {
+            if len(get_python_info()) > 0 {
+                return extract_json_value_py(json_text, path)?
+            }
+            fail 1
+        }
+        return result
     }
     if len(get_python_info()) > 0 {
         return extract_json_value_py(json_text, path)?
