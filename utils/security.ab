@@ -21,28 +21,24 @@ pub fun check_llm_output(script_content: Text): Bool {
         if starts_with(line, "#!"):
             return false
 
-        // 规则1: 禁止$和`
-        if text_contains(line, "$") or text_contains(line, "`"):
-            return false
-
-        // 步骤 2: 检查是否为空行
+        // 步骤 1: 检查是否为空行
         if match_regex(line, "^\s*$"):
             continue
 
-        // 步骤 3: 检查是否为注释行
+        // 步骤 2: 检查是否为注释行
         if match_regex(line, "^\s*#.*$"):
             continue
 
-        // 规则 4: 允许 echo '...' (单引号，内部不含')
+        // 规则 3: 允许 echo '...' (单引号，内部不含')
         if match_regex(line, "^\s*echo\s+'[^']*'\s*$"):
             continue
 
-        // 规则 5: 允许 echo "..." (双引号)，但需额外检查
-        if match_regex(line, "^\s*echo\s+\"[^\"]*\"\s*$"):
+        // 规则 4: 允许 echo "..." (双引号)，但需额外检查是否含 '$' 或 '`'
+        if match_regex(line, "^\s*echo\s+\"[^\"]*\"\s*$") and not (text_contains(line, "$") or text_contains(line, "`")):
             continue
 
         // 规则 5: 允许exit 201和exit 202
-        if line == "exit 201" or line == "exit 202" :
+        if line == "exit 201" or line == "exit 202":
             continue
 
         // 如果代码执行到这里，说明该行不符合任何已知的安全规则。
