@@ -90,7 +90,7 @@ pub fun raw_unescape_json_value(text: Text): Text {
 
 pub fun extract_json_value_sed_fallback(json_text: Text, path: Text): Text? {
     let key = trust $ awk -F. '\{print \$NF}' <<< "{path}" $
-    let value = trust $ sed -En 's/.*"'{key}'": *"(([^"]|\\\\")*)".*/\1/p' <<< "{json_text}" $
+    let value = trust $ tr -d '\n' <<< "{json_text}" | sed -E -n 's/.*"'{key}'":[[:space:]]*"(([^"]|\\\\")*)".*/\1/p' $
     if value == "" {
         fail 1
     }
