@@ -1,10 +1,11 @@
 import { split_chars } from "std/text"
+import { execute_python3_script } from "./system.ab"
 
 pub fun safe_escape_json_jq(text: Text): Text? {
     return $ jq -rn --arg s "{text}" '\$s | @json' $? // already enclosed in quotes
 }
 
-pub fun safe_escape_json_no_fallback(text: Text): Text {
+pub fun safe_escape_json_fallback(text: Text): Text {
     if text == "" :
         return "\"\""
 
@@ -27,4 +28,18 @@ pub fun safe_escape_json_no_fallback(text: Text): Text {
 
 pub fun extract_json_value_jq(json_text: Text, path: Text): Text? {
     return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split(".") | map(tonumber? // .))' $?
+}
+
+pub fun safe_escape_json_py(text: Text): Text? {
+    let script = "import json,sys;print(json.dumps(sys.argv[1] if len(sys.argv) > 1 else ''))"
+    return execute_python3_script(script, [text])?
+}
+
+pub fun extract_json_value_py(json_text: Text, path: Text): Text? {
+    let script = "import json,sys;d=json.loads(sys.argv[1]);p=sys.argv[2].split('.');v=d;
+try:
+    for k in p: v=v[int(k) if k.isdigit() and isinstance(v, list) else k]
+    print(json.dumps(v) if isinstance(v,(dict,list)) else v)
+except:print('null')"
+    return execute_python3_script(script, [json_text, path])?
 }

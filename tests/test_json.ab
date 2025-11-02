@@ -5,16 +5,48 @@ main {
     let saying = "He said: \"Hi\"\nNew line with\\ a backslash"
     
     echo "--- With jq ---"
-    let escaped = trust safe_escape_json(saying)
+    let escaped_jq = trust safe_escape_json_jq(saying)
     echo "Original: {saying}"
-    echo "Escaped:  {escaped}"
+    echo "Escaped (jq):  {escaped_jq}"
 
-    echo "\n--- Without jq ---"
-    let escaped_no_jq = safe_escape_json_no_jq(saying)
-    echo "Original: {saying}"
-    echo "Escaped:  {escaped_no_jq}"
+    echo "\n--- With Python ---"
+    let escaped_py = trust safe_escape_json_py(saying)
+    echo "Escaped (py):  {escaped_py}"
+    if escaped_jq != escaped_py {
+        echo "Error: Python and jq escape results do not match!"
+        exit 1
+    }
+    echo "Results match!"
+
+    echo "\n--- With Fallback ---"
+    let escaped_fallback = safe_escape_json_fallback(saying)
+    echo "Escaped (fallback): {escaped_fallback}"
+    if escaped_jq != escaped_fallback {
+        echo "Error: Fallback and jq escape results do not match!"
+        exit 1
+    }
+    echo "Results match!"
+
 
     echo "\n--- JSON Parsing ---"
-    let json_str = "\{\"says\": {escaped_no_jq}}"
-    echo "Extracted Says: {trust extract_json_value(json_str, "says")}"
+    let json_str = "\{\"says\": {escaped_jq}, \"nested\": \{\"a\": [1, 2]}}"
+    echo "JSON: {json_str}"
+    
+    echo "\n--- Extracting with jq ---"
+    let extracted_jq = trust extract_json_value_jq(json_str, "says")
+    echo "Extracted 'says' (jq): {extracted_jq}"
+    let extracted_nested_jq = trust extract_json_value_jq(json_str, "nested.a.1")
+    echo "Extracted 'nested.a.1' (jq): {extracted_nested_jq}"
+
+    echo "\n--- Extracting with Python ---"
+    let extracted_py = trust extract_json_value_py(json_str, "says")
+    echo "Extracted 'says' (py): {extracted_py}"
+    let extracted_nested_py = trust extract_json_value_py(json_str, "nested.a.1")
+    echo "Extracted 'nested.a.1' (py): {extracted_nested_py}"
+
+    if extracted_jq != extracted_py or extracted_nested_jq != extracted_nested_py {
+        echo "Error: Python and jq extract results do not match!"
+        exit 1
+    }
+    echo "Results match!"
 }
