@@ -51,14 +51,14 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
             echo_warning("We cannot guarantee the safety of the above script. Please review it carefully.")
             should_execute = input_confirm("Do you want to execute it anyway?", false)
         }
-
+        let scode = 0
         let execution_context = ""
         if should_execute {
             if not is_safe {
                 echo_info("Executing in 3 seconds... Press Ctrl+C to cancel.")
                 trust $ sleep 3 $
             }
-            let scode = 0
+            scode = 0
             let output = $ set -o pipefail; bash -c "{assistant_response}" | tee /dev/tty $ failed {
                 scode = status
                 if status == 201 {
@@ -70,6 +70,10 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
                     if input_confirm("Assistant suggested ending the session. End now?", true) {
                         exit 0
                     }
+                }
+                if status == 203 {
+                    echo_info("Assistant requested to continue without user input.")
+                    // Skip user input and continue the loop
                 } else {
                     echo_warning("Script execution failed with status: {status}")
                 }
@@ -81,7 +85,12 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
             execution_context = "User chose not to execute the script."
         }
 
-        // Step 5: Get next user input
+        // Step 5: Get next user input or continue automatically
+        if scode == 203 {
+            current_user_prompt = "{execution_context}\n\nUser's next instruction: [AUTO-CONTINUE]"
+            continue
+        }
+
         let next_user_input = ""
         loop {
             next_user_input = input_prompt("You: ")
@@ -93,6 +102,7 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
             break
         }
         current_user_prompt = "{execution_context}\n\nUser's next instruction: {next_user_input}"
+        echo current_user_prompt
     }
     echo_info("Session ended by user.")
 }

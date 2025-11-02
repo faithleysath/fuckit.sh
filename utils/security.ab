@@ -14,7 +14,7 @@ fun custom_match_regex(text: Text, pattern: Text): Bool {
 // 1. Allow empty lines (^\s*$).
 // 2. Allow comment lines (^\s*#).
 // 3. Allow `echo '...'` (single quotes) format, supporting escaped quotes (\').
-// 4. Allow `exit 201` and `exit 202`.
+// 4. Allow `exit 201`, `exit 202` and `exit 203`.
 // --------------------
 
 pub fun check_llm_output(script_content: Text): Bool {
@@ -40,8 +40,8 @@ pub fun check_llm_output(script_content: Text): Bool {
         if custom_match_regex(sanitized_line, "^\s*echo\s+'([^']|\\\\')*'\s*$"):
             continue
 
-        // Rule 4: Allow `exit 201` and `exit 202`
-        if line == "exit 201" or line == "exit 202":
+        // Rule 4: Allow `exit 201`, `exit 202` and `exit 203`
+        if line == "exit 201" or line == "exit 202" or line == "exit 203":
             continue
 
         // If the code reaches here, the line does not match any known safe patterns.
