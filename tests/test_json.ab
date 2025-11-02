@@ -66,6 +66,27 @@ main {
     }
     echo "extract_json_value_py: PASSED"
 
+    // Test raw unescape
+    let raw_escaped_str = "He said: \\\"Hi\\\"\\nNew line with\\\\ a backslash"
+    let unescaped_val = raw_unescape_json_value(raw_escaped_str)
+    if unescaped_val != saying {
+        echo "Error: raw_unescape_json_value failed!"
+        exit 1
+    }
+    echo "raw_unescape_json_value: PASSED"
+
+    // Test sed fallback extract
+    let sed_json_str = "\"says\":\"He said: \\\"Hi\\\"\\nNew line with\\\\ a backslash\""
+    let extracted_sed_fallback = trust extract_json_value_sed_fallback(sed_json_str, "says")
+    if extracted_sed_fallback != raw_escaped_str {
+        echo "Error: extract_json_value_sed_fallback failed!"
+        echo "Expected: {raw_escaped_str}"
+        echo "Got: {extracted_sed_fallback}"
+        exit 1
+    }
+    echo "extract_json_value_sed_fallback: PASSED"
+
+
     echo "\n--- Testing Wrapper Functions ---"
     let escaped_wrapper = trust safe_escape_json(saying)
     if escaped_wrapper != expected_escape {
