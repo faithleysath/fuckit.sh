@@ -71,8 +71,6 @@ pub fun execute_python3_script(script: Text): Text? {
     let python_cmd = python_cmd_version[0]
     let python_version = python_cmd_version[1]
     // Check if Python version is at least 3.6
-    if compare_versions(python_version, "3.6") < 0 : fail 1
-    return ${python_cmd} << 'EOF'
-{script}
-EOF$?
+    if compare_versions(python_version, "3.6")? < 0 : fail 1
+    return $ {python_cmd} -c "{script}" $?
 }

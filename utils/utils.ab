@@ -1,3 +1,5 @@
+import { split, parse_number } from "std/text"
+
 pub fun compare_versions(v1: Text, v2: Text): Num? {
     let parts1 = split(v1, ".")
     let parts2 = split(v2, ".")

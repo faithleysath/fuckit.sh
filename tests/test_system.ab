@@ -28,4 +28,12 @@ main {
     } else {
         echo "  No Python installation found."
     }
+
+    echo "\nTesting Python Script Execution:"
+    let python_script = "import sys\nprint(f'Hello from \{sys.version}')"
+    let result = execute_python3_script(python_script) failed {
+        echo "  Failed to execute Python script. Status: {status}"
+        exit 1
+    }
+    echo "  - Output: {result}"
 }
