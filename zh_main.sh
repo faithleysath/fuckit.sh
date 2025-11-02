@@ -1,21 +1,20 @@
 #!/bin/bash
 #
-# 这破逼玩意儿是 fuckit.sh 的安装和临时运行脚本
-# 爱用不用，不用滚蛋
+# This script is the installer and temporary runner for fuckit.sh
 #
-# --- 安全使用方法（安你妈的全） ---
+# --- RECOMMENDED SECURE USAGE ---
 #
-# 1. 下载:
+# 1. Download:
 #    curl -o fuckit.sh https://fuckit.sh
 #
-# 2. 瞅一眼:
+# 2. Inspect:
 #    less fuckit.sh
 #
-# 3. 运行 (安装):
+# 3. Run (Install):
 #    bash fuckit.sh
 #
-# 4. 运行 (临时用用):
-#    bash fuckit.sh "你的弱智命令"
+# 4. Run (Temporary):
+#    bash fuckit.sh "your prompt"
 #
 
 set -euo pipefail
@@ -29,14 +28,14 @@ readonly C_YELLOW='\033[0;33m'
 readonly C_CYAN='\033[0;36m'
 readonly C_BOLD='\033[1m'
 
-# --- 操! ---
-readonly FUCK="${C_RED_BOLD}操!${C_RESET}"
-readonly FCKN="${C_RED}你他妈${C_RESET}"
+# --- 提示标记 ---
+readonly FUCK="${C_RED_BOLD}[!]${C_RESET}"
+readonly FCKN="${C_RED}[提示]${C_RESET}"
 
 
 # --- 配置 ---
 if [ -z "${HOME:-}" ]; then
-    echo -e "\033[1;31m操你妈!\033[0m \033[0;31m你的 HOME 变量没设置，我他妈怎么知道装哪儿？自己搞定！ (比如 export HOME=/root)\033[0m" >&2
+    echo -e "\033[1;31m错误!\033[0m \033[0;31m您的 HOME 变量未设置，无法确定安装位置。请自行设置 (例如 export HOME=/root)\033[0m" >&2
     exit 1
 fi
 readonly INSTALL_DIR="$HOME/.fuck"
@@ -61,9 +60,9 @@ if [ -z "${C_RESET:-}" ]; then
     readonly C_CYAN='\033[0;36m'
     readonly C_BOLD='\033[1m'
 
-    # --- 操! ---
-    readonly FUCK="${C_RED_BOLD}操!${C_RESET}"
-    readonly FCKN="${C_RED}你他妈${C_RESET}"
+    # --- 提示标记 ---
+    readonly FUCK="${C_RED_BOLD}[!]${C_RESET}"
+    readonly FCKN="${C_RED}[提示]${C_RESET}"
 
     # --- 配置 ---
     if [ -z "${HOME:-}" ]; then
@@ -134,7 +133,15 @@ _fuck_json_escape() {
 # 卸载脚本
 _uninstall_script() {
     echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
-
+    for i in {1..3}
+    do
+        echo "你真的要卸载吗[y/N]?"
+        read -r answer
+        if [ "$answer" = "n" ] || [ "$answer" = "N" ]; then
+            echo -e "${C_GREEN}行，我先不卸了。${C_RESET}"
+            return
+        fi
+    done
     # 找配置文件
     local profile_file
     profile_file=$(_installer_detect_profile)
@@ -147,7 +154,7 @@ _uninstall_script() {
             sed -i.bak "\|# Added by fuckit.sh installer|d" "$profile_file"
         fi
     else
-        echo -e "${C_YELLOW}找不到 shell 配置文件，你他妈自己看着办吧。${C_RESET}"
+        echo -e "${C_YELLOW}找不到 shell 配置文件，你自己看着办吧。${C_RESET}"
     fi
 
     if [ -d "$INSTALL_DIR" ]; then
@@ -155,7 +162,7 @@ _uninstall_script() {
     fi
 
     sleep 3
-    echo -e "${C_GREEN}行，我滚了，以后别他妈哭着求我回来。${C_CYAN}赶紧重启你那破终端吧，我看见你就烦。${C_RESET}"
+    echo -e "${C_GREEN}行，我先走一步，告辞。${C_CYAN}赶紧重启你那终端吧，不然会别名污染。${C_RESET}"
     sleep 3
     echo -e "${C_YELLOW}临别之际，献上一首小诗，祝您前程似锦：${C_RESET}"
     sleep 2
@@ -184,12 +191,12 @@ _fuck_execute_prompt() {
     fi
 
     if ! command -v curl &> /dev/null; then
-        echo -e "$FUCK ${C_RED}'fuck' 命令要用 'curl'，你他妈连这都没装？赶紧去装！${C_RESET}" >&2
+        echo -e " ${C_RED}'fuck' 命令要用 'curl'，你连这都没装？赶紧去装！${C_RESET}" >&2
         return 1
     fi
 
     if [ "$#" -eq 0 ]; then
-        echo -e "$FUCK ${C_RED}你他妈哑巴了？到底要我干啥？${C_RESET}" >&2
+        echo -e " ${C_RED}你到底要我干啥？${C_RESET}" >&2
         return 1
     fi
 
@@ -207,7 +214,7 @@ _fuck_execute_prompt() {
     local payload
     payload=$(printf '{ "sysinfo": "%s", "prompt": "%s" }' "$escaped_sysinfo" "$escaped_prompt")
 
-    # API 地址必须写死在这儿，不然没法用
+    # API 地址必须写在这儿，不然没法用
     local api_url="https://fuckit.sh/"
 
     local response
@@ -216,37 +223,35 @@ _fuck_execute_prompt() {
         -d "$payload")
 
     if [ -z "$response" ]; then
-        echo -e "$FUCK ${C_RED}AI 那孙子装死呢，屁都没放一个。${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}AI 没有响应，请重试。${C_RESET}" >&2
         return 1
     fi
 
     # --- 用户确认 ---
-    echo -e "${C_YELLOW}--- AI 瞎逼逼了这些，你他妈自己看吧 ---${C_RESET}"
+    echo -e "${C_YELLOW}------ AI 生成了这些，你自己看吧 ------${C_RESET}"
     # 直接输出
     echo -e "${C_CYAN}$response${C_RESET}"
     echo -e "${C_YELLOW}------------------------------------------${C_RESET}"
-    
-    # 二次确认
     printf "${C_BOLD}${C_YELLOW}看完了没？干不干？[y/N]${C_RESET} "
     local confirmation
     read -r confirmation < /dev/tty
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
-        echo -e "${C_RED_BOLD}我操！${C_RESET}${C_CYAN} 还等啥呢，干他妈的！${C_RESET}" >&2
+        echo -e "${C_CYAN} 还等啥呢，走起！${C_RESET}" >&2
         # 执行服务器返回的命令并检查退出码
         if eval "$response"; then
-            echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
+            echo -e "${C_GREEN}完事了，应该没啥问题。${C_RESET}"
         else
             local exit_code=$?
-            echo -e "${C_RED_BOLD}操！${C_RED}这破命令执行失败了，退出码是 $exit_code。别他妈看我，自己想办法。${C_RESET}" >&2
+            echo -e "${C_RED_BOLD}烦死了！${C_RED}这命令执行失败了，退出码是 $exit_code。别他妈看我，自己想办法。${C_RESET}" >&2
         fi
     else
-        echo -e "${C_RED}怂逼！不干就滚，别浪费老子时间。${C_RESET}" >&2
+        echo -e "${C_RED}好的，已撤销${C_RESET}" >&2
     fi
 }
 
 # 定义别名
-alias fuck='_fuck_execute_prompt'
+alias tool='_fuck_execute_prompt'
 
 # --- 核心逻辑结束 ---
 EOF
@@ -278,14 +283,14 @@ _installer_detect_profile() {
 
 # 主安装函数
 _install_script() {
-    echo -e "${C_BOLD}行了，开始装这破玩意儿，你他妈最好别后悔...${C_RESET}"
+    echo -e "$FCKN ${C_BOLD}好的，开始安装...${C_RESET}"
     mkdir -p "$INSTALL_DIR"
     
     # 把核心逻辑写进 main.sh
     echo "$CORE_LOGIC" > "$MAIN_SH"
     
     if [ $? -ne 0 ]; then
-        echo -e "$FUCK ${C_RED}写不进去文件，你他妈看看权限是不是有问题。${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}无法写入文件，请检查权限。${C_RESET}" >&2
         return 1
     fi
 
@@ -294,8 +299,8 @@ _install_script() {
     profile_file=$(_installer_detect_profile)
     
     if [ "$profile_file" = "unknown_profile" ]; then
-        echo -e "$FUCK ${C_RED}找不到 .bashrc, .zshrc, or .profile，你他妈用的什么野鸡shell？${C_RESET}" >&2
-        echo -e "${C_YELLOW}自己把这行加到你的启动文件里，别他妈指望我：${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}找不到 .bashrc, .zshrc, 或 .profile。${C_RESET}" >&2
+        echo -e "${C_YELLOW}请手动添加以下行到您的启动文件：${C_RESET}" >&2
         echo -e "\n  ${C_CYAN}source $MAIN_SH${C_RESET}\n" >&2
         return
     fi
@@ -308,18 +313,18 @@ _install_script() {
         fi
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo -e "${C_RED_BOLD}我操！${C_RESET} ${C_GREEN}装好了，赶紧滚去干活，别在这儿逼逼赖赖。${C_RESET}"
-        echo -e "${C_YELLOW}重启你那破终端，要不就 ${C_BOLD}source $profile_file${C_YELLOW}，赶紧的别磨叽！${C_RESET}"
-        echo -e "\n${C_BOLD}--- 咋用 ---${C_RESET}"
-        echo -e "就直接 ${C_RED_BOLD}fuck${C_RESET} 后边跟上你要干的破事儿就完了。"
-        echo -e "比方说:"
-        echo -e "  ${C_CYAN}fuck install git${C_RESET}"
-        echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
-        echo -e "  ${C_CYAN}fuck 找出当前目录所有大于10MB的文件${C_RESET}"
-        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# 把我自个儿卸了（卸了就卸了，谁他妈稀罕）${C_RESET}"
-        echo -e "\n${C_YELLOW}记住了，重启你那破终端再用！${C_RESET}"
+        echo -e "${C_GREEN}安装成功！${C_RESET}"
+        echo -e "${C_YELLOW}请重启终端，或运行 ${C_BOLD}source $profile_file${C_YELLOW} 来开始使用。${C_RESET}"
+        echo -e "\n${C_BOLD}--- 使用方法 ---${C_RESET}"
+        echo -e "直接输入 ${C_CYAN}tool${C_RESET} 后接您想做的事情。"
+        echo -e "示例:"
+        echo -e "  ${C_CYAN}tool install git${C_RESET}"
+        echo -e "  ${C_CYAN}tool uninstall git${C_RESET}"
+        echo -e "  ${C_CYAN}tool 找出当前目录所有大于10MB的文件${C_RESET}"
+        echo -e "  ${C_CYAN}tool uninstall${C_RESET} ${C_GREEN}# 卸载工具本身${C_RESET}"
+        echo -e "\n${C_YELLOW}记得重启终端再使用！${C_RESET}"
     else
-        echo -e "$FUCK ${C_YELLOW}已经装过了，你个傻逼。帮你更新了一下脚本。${C_RESET}"
+        echo -e "$FUCK ${C_YELLOW}已经安装过了，已为您更新脚本。${C_RESET}"
     fi
 }
 
