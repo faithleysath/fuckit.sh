@@ -1,10 +1,10 @@
 import { split_chars } from "std/text"
 
-pub fun safe_escape_json(text: Text): Text? {
+pub fun safe_escape_json_jq(text: Text): Text? {
     return $ jq -rn --arg s "{text}" '\$s | @json' $? // already enclosed in quotes
 }
 
-pub fun safe_escape_json_no_jq(text: Text): Text {
+pub fun safe_escape_json_no_fallback(text: Text): Text {
     if text == "" :
         return "\"\""
 
@@ -25,6 +25,6 @@ pub fun safe_escape_json_no_jq(text: Text): Text {
     return "\"{escaped_text}\""
 }
 
-pub fun extract_json_value(json_text: Text, path: Text): Text? {
+pub fun extract_json_value_jq(json_text: Text, path: Text): Text? {
     return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split(".") | map(tonumber? // .))' $?
 }
