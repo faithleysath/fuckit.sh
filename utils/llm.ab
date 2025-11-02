@@ -10,12 +10,15 @@ pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prom
     let assistant_len = len(assistant_prompt)
 
     // Loop through the assistant prompts, which is the shorter or equal length array.
-    for i in 0..assistant_len {
-        let escaped_user = safe_escape_json(user_prompt[i])?
-        let escaped_assistant = safe_escape_json(assistant_prompt[i])?
-        message_json += ", \{\"role\": \"user\", \"content\": {escaped_user}}"
-        message_json += ", \{\"role\": \"assistant\", \"content\": {escaped_assistant}}"
+    if assistant_len > 0 {
+        for i in 0..assistant_len {
+            let escaped_user = safe_escape_json(user_prompt[i])?
+            let escaped_assistant = safe_escape_json(assistant_prompt[i])?
+            message_json += ", \{\"role\": \"user\", \"content\": {escaped_user}}"
+            message_json += ", \{\"role\": \"assistant\", \"content\": {escaped_assistant}}"
+        }
     }
+
     // If there are remaining user prompts, add them.
     if user_len > assistant_len {
         for j in assistant_len..user_len {
