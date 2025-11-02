@@ -1,5 +1,0 @@
-let a = "
-echo 123\n\"
-echo 456
-"
-trust $echo "{a}"$

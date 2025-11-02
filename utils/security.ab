@@ -1,8 +1,10 @@
 import { split_lines, text_contains, starts_with } from "std/text"
 
 fun custom_match_regex(text: Text, pattern: Text): Bool {
-    silent trust $ echo "{text}" | grep -qE -- "{pattern}" $
-    return status == 0
+    silent $ printf "%s" "{text}" | grep -qE -- "{pattern}" $ failed {
+        return false
+    }
+    return true
 }
 
 // Checks the LLM output script file according to strict security rules.

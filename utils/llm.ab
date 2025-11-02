@@ -28,6 +28,6 @@ pub fun request_llm(base_url: Text, model_name: Text, api_key: Text, system_prom
     \"model\": \"{model_name}\",
     \"messages\": [ {message_json} ]
 }"
-    let response = $echo "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
+    let response = $printf "%s" "{payload}" | curl -fsS "{full_url}" -H "Content-Type: application/json" -H "Authorization: Bearer {api_key}" --data-binary @- $?
     return extract_json_value(response, "choices.0.message.content")?
 }
