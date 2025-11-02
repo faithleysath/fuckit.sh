@@ -45,7 +45,12 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
 
         // Step 4: Security check and execution
         let is_safe = check_llm_output(assistant_response)
-        let should_execute = is_safe or input_confirm("The script is not recognized as safe. Do you want to execute it?", false)
+        let should_execute = false
+        if is_safe {
+            should_execute = true
+        } else {
+            should_execute = input_confirm("The script is not recognized as safe. Do you want to execute it?", false)
+        }
 
         let execution_context = ""
         if should_execute {

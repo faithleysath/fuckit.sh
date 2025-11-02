@@ -33,8 +33,11 @@ pub fun check_llm_output(script_content: Text): Bool {
         if custom_match_regex(line, "^\s*#.*$"):
             continue
 
-        // Rule 3: Allow `echo '...'` (single quotes, supporting escaped quotes \' inside)
-        if custom_match_regex(line, "^\s*echo\s+'([^']|\\\\')*'\s*$"):
+        // Rule 3: Allow `echo '...'` by checking an ASCII-only version of the line.
+        // Non-ASCII chars are replaced with spaces to preserve structure for the regex check,
+        // which prevents both Unicode issues and command injection.
+        let sanitized_line = trust $ printf "%s" "{line}" | tr -c '\11\12\15\40-\176' ' ' $
+        if custom_match_regex(sanitized_line, "^\s*echo\s+'([^']|\\\\')*'\s*$"):
             continue
 
         // Rule 4: Allow `exit 201` and `exit 202`
