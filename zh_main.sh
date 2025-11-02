@@ -221,11 +221,11 @@ _fuck_execute_prompt() {
     fi
 
     # --- 用户确认 ---
-    echo -e "${C_YELLOW}------ AI 生成了这些，你自己看吧 ------${C_RESET}"
+    echo -e "${C_YELLOW}------ AI 生成了以下命令，请您查看 ------${C_RESET}"
     # 直接输出
     echo -e "${C_CYAN}$response${C_RESET}"
     echo -e "${C_YELLOW}------------------------------------------${C_RESET}"
-    printf "${C_BOLD}${C_YELLOW}看完了没？干不干？[y/N]${C_RESET} "
+    printf "${C_BOLD}${C_YELLOW}查看完毕，是否执行？[y/N]${C_RESET} "
     local confirmation
     read -r confirmation < /dev/tty
 
