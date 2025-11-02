@@ -69,7 +69,7 @@ pub fun uninstall(home_dir: Text, name: Text): Null {
         echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
         $ rm {bin_path} $ failed : echo_error("Failed to remove '{bin_path}'. Please check permissions.")
         echo_success("fuckit.sh uninstalled successfully.")
-    } else :
+    } else {
         echo_warning("fuckit.sh is not installed, nothing to do.")
     }
 }
