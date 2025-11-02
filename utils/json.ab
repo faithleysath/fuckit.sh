@@ -25,29 +25,6 @@ pub fun safe_escape_json_no_jq(text: Text): Text {
     return "\"{escaped_text}\""
 }
 
-pub fun safe_escape_json_sed(text: Text): Text? {
-    // 1. 保留原始的空字符串检查，这是最高效的。
-    if text == "" {
-        return "\"\""
-    }
-
-    // 2. 使用 `printf "%s"` 将 Amber 变量 {text} 安全地传递给管道。
-    // 3. `sed` 命令详解：
-    //    - ':a; N; \$!ba;' : 
-    //        - `$` (sed "非最后一行" 逻辑) 必须转义为 `\$`。
-    //    - 's/\\/\\\\/g' : 替换反斜杠 (必须首先执行)。
-    //    - 's/"/\\"/g'   : 替换双引号。
-    //    - 's/\n/\\n/g'  : 替换换行符。
-    //    - 's/^/"/'       : 在开头添加一个引号。
-    //    - 's/\$/"/'       : 
-    //        - `$` (sed "行尾" 锚点) 必须转义为 `\$`。
-    //
-    // 4. ' $?' 用于命令的失败传播，使函数变为可失败函数。
-    let escaped_text = $ printf "%s" {text} | sed ':a; N; \$!ba; s/\\/\\\\/g; s/"/\\"/g; s/\n/\\n/g; s/^/"/; s/\$/"/' $?
-    
-    return escaped_text
-}
-
 pub fun extract_json_value(json_text: Text, path: Text): Text? {
     return $ jq -rn --argjson j "{json_text}" --arg p "{path}" '\$j | getpath(\$p | split(".") | map(tonumber? // .))' $?
 }
