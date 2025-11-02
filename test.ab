@@ -1,6 +1,0 @@
-let a = "^\s*#.*$"
-echo a
-let b = "^\s*echo\s+'[^']*'\s*$"
-echo b
-let c = "^\s*echo\s+\"[^\"]*\"\s*$"
-echo c
