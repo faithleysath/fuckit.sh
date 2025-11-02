@@ -55,7 +55,7 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
         let execution_context = ""
         if should_execute {
             echo_info("Executing script...")
-            let output = $ bash -c "{assistant_response}" | tee /dev/tty $ failed {
+            let output = $ set -o pipefail; bash -c "{assistant_response}" | tee /dev/tty $ failed {
                 if status == 201 {
                     echo_info("Session ended by assistant (exit 201).")
                     exit 0
@@ -69,10 +69,6 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
                 }
             }
             echo_success("Execution finished.")
-            if output != "" {
-                echo_info("Output:")
-                echo output
-            }
             execution_context = "Command executed with exit code: {status}.\nOutput:\n---\n{output}\n---"
         } else {
             echo_warning("Execution skipped by user.")
