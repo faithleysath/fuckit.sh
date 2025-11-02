@@ -47,3 +47,17 @@ pub fun get_os_info(): Text? {
 pub fun get_current_path(): Text? {
     return $ pwd $?
 }
+
+pub fun get_python_info(): [Text] {
+    let python_commands = ["python3", "python", "py", "python2"]
+    let available_pythons = [Text]
+
+    for cmd in python_commands {
+        if is_command(cmd) {
+            let version_output = trust $ {cmd} --version 2>&1 $
+            let version = trust $ echo "{version_output}" | tr -d '\n\r' $
+            available_pythons += ["{cmd} {version}"]
+        }
+    }
+    return available_pythons
+}

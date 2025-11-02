@@ -18,4 +18,14 @@ main {
 
     echo "\nCurrent Working Path:"
     echo "{trust get_current_path()}"
+
+    echo "\nAvailable Python Versions:"
+    let pythons = get_python_info()
+    if len(pythons) > 0 {
+        for python in pythons {
+            echo "  - {python}"
+        }
+    } else {
+        echo "  No Python installation found."
+    }
 }
