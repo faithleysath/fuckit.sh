@@ -109,6 +109,17 @@ main {
     }
     echo "extract_json_value_sed_fallback (multiline case): PASSED"
 
+    // Test sed fallback for flexible whitespace (supported)
+    let whitespace_json = "\"whitespace_key\" \n\t : \n\t \"whitespace_value\""
+    let extracted_whitespace = trust extract_json_value_sed_fallback(whitespace_json, "whitespace_key")
+    if extracted_whitespace != "whitespace_value" {
+        echo "Error: sed_fallback failed for flexible whitespace JSON!"
+        echo "Expected: whitespace_value"
+        echo "Got: {extracted_whitespace}"
+        exit 1
+    }
+    echo "extract_json_value_sed_fallback (flexible whitespace case): PASSED"
+
 
     echo "\n--- Testing Wrapper Functions ---"
     let escaped_wrapper = trust safe_escape_json(saying)
