@@ -36,83 +36,13 @@ $ command -v curl > /dev/null 2>&1 $ failed {
 import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
 import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
-import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
-import { file_download } from "std/http"
 import { request_llm} from "./utils/llm.ab"
-import { compare_versions } from "./utils/utils.ab"
+import { install, uninstall } from "./core/installer.ab"
 
 // Get the home directory from environment variable
 let home_dir = trust env_var_get("HOME")
 if home_dir == "" :
     echo_warning("HOME environment variable is not set. Try 'export HOME=~' and run again. Add to your shell profile to make it permanent.")
-
-fun install(): Null {
-    // First, check if already installed, just check version command directly
-    let current_version = $ {NAME} --version 2> /dev/null $ failed : let current_version = ""
-
-    if current_version == "" :
-        echo_info("fuckit.sh is not installed. Installing now...")
-    else {
-        let comparison = compare_versions(current_version, VERSION) failed : let comparison = -1
-        if comparison == -1 :
-            echo_warning("A new version ({VERSION}) is available. Your current version is {current_version}. Upgrading...")
-        else {
-            echo_info("You are already using the latest version ({current_version}).")
-            exit 0
-        }
-    }
-    if home_dir == "" :
-        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
-
-    // Installation / Update process (they are the same here)
-    // Step1: Check if the dir exists
-    let bin_dir = home_dir + "/.local/bin"
-    let bin_path = bin_dir + "/" + NAME
-    if not dir_exists(bin_dir) {
-        echo_info("Directory '{bin_dir}' does not exist. Creating it...")
-        dir_create(bin_dir)
-    }
-    // Step2: Check if bin_dir is in PATH
-    let path_env = trust env_var_get("PATH")
-    // Step3: Download the script and place it in bin_dir
-    echo_info("Downloading 'fuckit.sh' to '{bin_dir}'...(via {URL})")
-    if not file_download(URL, bin_path):
-        echo_error("No Avaliable CLI Tools Found, Need curl, wget or aria2c.")
-    // Step4: Make it executable
-    if not file_chmod(bin_path, "+x"):
-        echo_error("Failed to set executable permission on '{bin_path}'.")
-    // Step5: Verify installation
-    let installed_version = $ {bin_path} --version 2> /dev/null $ failed : let installed_version = ""
-    if installed_version == "" {
-        echo "Verbose Information:"
-        echo "  - Home Directory: {home_dir}"
-        echo "  - Binary Path: {bin_path}"
-        echo "  - Target Version: {VERSION}"
-        echo "  - Current Version: {current_version}"
-        echo "  - Installed Version: {installed_version}"
-        echo "  - PATH: {path_env}"
-        echo_error("Installation failed: Unable to verify installation. (It means executing '{bin_path} --version' did not return any output or just failed.) Please check the above information and try again.")
-    } else :
-        echo_success("fuckit.sh version {installed_version} installed successfully at '{bin_path}'!")
-    // Step6: Warn if bin_dir is not in PATH
-    if path_env != "" and not array_contains(split(path_env, ":"), bin_dir) {
-        echo_warning("Warning: '{bin_dir}' is not in your PATH environment variable. You may need to add it manually to run 'fuckit.sh' easily.")
-        echo_info("You can add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc):")
-        echo_info("export PATH=$PATH:{bin_dir}")
-    }
-}
-
-fun uninstall(): Null {
-    if home_dir == "" :
-        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
-    let bin_path = home_dir + "/.local/bin/" + NAME
-    if file_exists(bin_path) {
-        echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
-        $ rm {bin_path} $ failed : echo_error("Failed to remove '{bin_path}'. Please check permissions.")
-        echo_success("fuckit.sh uninstalled successfully.")
-    } else :
-        echo_warning("fuckit.sh is not installed, nothing to do.")
-}
 
 main (arguments) {
     // Handle zero arguments case (although this should not happen)
@@ -131,11 +61,11 @@ main (arguments) {
 
         // Uninstall
         len(script_args) == 1 and script_args[0] == "uninstall" :
-            uninstall()
+            uninstall(home_dir, NAME)
 
         // Install / Upgrade
         len(script_args) == 0 and not starts_with(script_name, home_dir + "/.local/bin"):
-            install()
+            install(home_dir, NAME, VERSION, URL)
 
         // Usage
         len(script_args) == 0 and starts_with(script_name, home_dir + "/.local/bin"):
