@@ -36,4 +36,24 @@ main {
         exit 1
     }
     echo "  - Output: {result}"
+
+    echo "\nTesting Python Script Execution with Arguments:"
+    let script_with_args = "import sys; print(sys.argv[1:])"
+    let args = ["hello", "world with space"]
+    let result_with_args = execute_python3_script(script_with_args, args) failed {
+        echo "  Failed to execute Python script with args. Status: {status}"
+        exit 1
+    }
+    echo "  - Args: {args}"
+    echo "  - Output: {result_with_args}"
+
+    echo "\nTesting Python Script Execution with Complex Arguments:"
+    let complex_arg = "it's a \"test\" with back\\slash and $(pwd)*"
+    let complex_args = [complex_arg]
+    let result_complex_args = execute_python3_script(script_with_args, complex_args) failed {
+        echo "  Failed to execute Python script with complex args. Status: {status}"
+        exit 1
+    }
+    echo "  - Args: ['{complex_arg}']"
+    echo "  - Output: {result_complex_args}"
 }

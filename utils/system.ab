@@ -1,7 +1,7 @@
 import { is_command, env_var_get } from "std/env"
 import { file_exists, file_read } from "std/fs"
 import { array_contains } from "std/array"
-import { split } from "std/text"
+import { split, replace } from "std/text"
 import { compare_versions } from "./utils.ab"
 
 pub fun get_package_managers(): [Text] {
@@ -74,7 +74,8 @@ pub fun execute_python3_script(script: Text, args: [Text] = [Text]): Text? {
     let python_version = python_cmd_version[1]
     // Check if Python version is at least 3.6
     if compare_versions(python_version, "3.6")? < 0 : fail 1
-    let full_command = "{python_cmd} -c '{script}'"
+    let escaped_script = replace(script, "'", "'\\''")
+    let full_command = "{python_cmd} -c '{escaped_script}'"
     for arg in args {
         // Safely quote each argument
         let quoted_arg = $ printf "%q" "{arg}" $?
