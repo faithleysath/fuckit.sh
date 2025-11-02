@@ -134,15 +134,7 @@ _fuck_json_escape() {
 # 卸载脚本
 _uninstall_script() {
     echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
-    for i in {1..3}
-    do
-        echo "你真的要卸载吗[y/N]?"
-        read -r answer
-        if [ "$answer" = "n" ] || [ "$answer" = "N" ]; then
-            echo -e "${C_GREEN}行，我先不卸了。${C_RESET}"
-            return
-        fi
-    done
+
     # 找配置文件
     local profile_file
     profile_file=$(_installer_detect_profile)
