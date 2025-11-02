@@ -93,8 +93,19 @@ main {
         "echo 'It\\'s a beautiful day.'",
         true
     ): passed_count += 1 else: failed_count += 1
+    if run_test(
+        "Command with leading/trailing whitespace",
+        "  echo 'hello'  ",
+        true
+    ): passed_count += 1 else: failed_count += 1
+    if run_test(
+        "Single quotes with an escaped backslash",
+        "echo 'path\\to\\file'",
+        true
+    ): passed_count += 1 else: failed_count += 1
 
     // --- Tests that should FAIL (return false) ---
+    if run_test("An invalid exit command", "exit 1", false): passed_count += 1 else: failed_count += 1
     if run_test("An unescaped single quote inside single quotes", "echo 'This isn't valid'", false): passed_count += 1 else: failed_count += 1
     if run_test("Script with a shebang", "#!/bin/bash\necho 'hello'", false): passed_count += 1 else: failed_count += 1
     if run_test("A simple double-quoted echo", "echo \"Hello World\"", false): passed_count += 1 else: failed_count += 1
