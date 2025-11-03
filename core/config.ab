@@ -17,7 +17,7 @@ fun get_persona_config_dir(): Text {
     return "{home_dir}/.fuckit/{persona}"
 }
 
-pub fun llm_config(): [Text]? {
+pub fun llm_config(): [Text] {
     let config_dir = get_persona_config_dir()
     let base_url = trust env_var_get("FUCKIT_BASE_URL")
     let api_key = trust env_var_get("FUCKIT_API_KEY")

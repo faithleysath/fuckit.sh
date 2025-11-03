@@ -8,10 +8,7 @@ import { llm_config } from "./config.ab"
 
 pub fun start_chat_session(initial_prompt: [Text]): Null {
     // Step 1: Load configuration
-    let config = llm_config() failed {
-        echo_error(trust env_var_get("MSG_ERR_LLM_CONFIG_MISSING"))
-        exit 1
-    }
+    let config = llm_config()
     let base_url = config[0]
     let api_key = config[1]
     let model_name = config[2]

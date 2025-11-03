@@ -13,11 +13,11 @@ pub fun install(home_dir: Text, name: Text, civil_name: Text, version: Text, url
         echo_info(trust env_var_get("MSG_INSTALL_START"))
     else {
         let comparison = compare_versions(current_version, version) failed : let comparison = -1
-        if comparison == -1 :
+        if comparison == -1 {
             let tpl = trust env_var_get("MSG_INSTALL_UPGRADE_AVAILABLE")
             let msg = replace(replace(tpl, "\{version}", version), "\{current_version}", current_version)
             echo_warning(msg)
-        else {
+        } else {
             let tpl = trust env_var_get("MSG_INSTALL_LATEST")
             let msg = replace(tpl, "\{current_version}", current_version)
             echo_info(msg)

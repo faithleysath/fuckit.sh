@@ -1,6 +1,6 @@
 import { env_var_get, env_var_set } from "std/env"
 import { file_exists } from "std/fs"
-import { split, starts_with, join } from "std/text"
+import { split, starts_with, join, ends_with, slice } from "std/text"
 
 fun get_persona_config_dir(): Text {
     let home_dir = trust env_var_get("HOME")
@@ -82,15 +82,15 @@ pub fun init_i18n() {
         if file_exists(lang_file) {
             for line in lines(lang_file) {
                 // Skip comments and empty lines
-                if not line starts_with "#" and line != "" {
+                if not starts_with(line, "#") and line != "" {
                     let parts = split(line, "=")
                     if len(parts) >= 2 {
                         let key = parts[0]
                         // Re-join the rest of the parts in case the value contains '='
                         let value = join(parts[1..len(parts)], "=")
                         // Remove quotes from value
-                        if value starts_with "\"" and value ends_with "\"" {
-                            value = value[1..len(value)-1]
+                        if starts_with(value, "\"") and ends_with(value, "\"") {
+                            value = slice(value, 1, len(value)-1)
                         }
                         trust env_var_set(key, value)
                     }
