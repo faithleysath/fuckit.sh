@@ -1,4 +1,4 @@
-import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
+import { env_var_get, echo_error, echo_warning, echo_info, echo_success, input_confirm } from "std/env"
 import { split } from "std/text"
 import { array_contains } from "std/array"
 import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
@@ -62,14 +62,55 @@ pub fun install(home_dir: Text, name: Text, version: Text, url: Text): Null {
 }
 
 pub fun uninstall(home_dir: Text, name: Text): Null {
-    if home_dir == "" :
+    if home_dir == "" {
         echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
-    let bin_path = home_dir + "/.local/bin/" + name
-    if file_exists(bin_path) {
-        echo_info("Uninstalling fuckit.sh from '{bin_path}'...")
-        $ rm {bin_path} $ failed : echo_error("Failed to remove '{bin_path}'. Please check permissions.")
-        echo_success("fuckit.sh uninstalled successfully.")
-    } else {
-        echo_warning("fuckit.sh is not installed, nothing to do.")
+        exit 1
     }
+
+    let bin_dir = home_dir + "/.local/bin"
+    let bin_path = bin_dir + "/" + name
+    let config_dir = home_dir + "/.fuckit"
+
+    if not file_exists(bin_path) {
+        echo_warning("fuckit.sh is not installed at '{bin_path}', nothing to do.")
+        exit 0
+    }
+
+    echo_info("Starting uninstallation process...")
+
+    // Find and remove all symbolic links (personas/aliases)
+    echo_info("Searching for aliases in '{bin_dir}'...")
+    let aliases = trust $ find "{bin_dir}" -type l -lname "*/{name}" $
+    if aliases != "" {
+        for alias_path in lines(aliases) {
+            echo_info("  - Removing alias: {alias_path}")
+            $ rm "{alias_path}" $ failed {
+                echo_warning("    Could not remove alias '{alias_path}'. Please check permissions.")
+            }
+        }
+    } else {
+        echo_info("No aliases found.")
+    }
+
+    // Remove the main executable
+    echo_info("Removing main executable: {bin_path}")
+    $ rm "{bin_path}" $ failed {
+        echo_error("Failed to remove '{bin_path}'. Please check permissions and try again.")
+        exit 1
+    }
+
+    // Ask to remove the configuration directory
+    if dir_exists(config_dir) {
+        if input_confirm("Do you want to remove all configurations and data from '{config_dir}'?", false) {
+            echo_info("Removing configuration directory: {config_dir}")
+            $ rm -r "{config_dir}" $ failed {
+                echo_error("Failed to remove '{config_dir}'. Please check permissions.")
+                exit 1
+            }
+        } else {
+            echo_info("Configuration directory '{config_dir}' was not removed.")
+        }
+    }
+
+    echo_success("fuckit.sh has been successfully uninstalled.")
 }
