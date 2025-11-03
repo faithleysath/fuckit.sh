@@ -1,0 +1,57 @@
+import { get_custom_prompt } from "../core/config.ab"
+import { get_core_prompt } from "../core/prompt.ab"
+import { file_write, dir_create, dir_exists, file_exists } from "std/fs"
+import { env_var_get } from "std/env"
+import { text_contains } from "std/text"
+
+main {
+    let home_dir = trust env_var_get("HOME")
+    let config_dir = home_dir + "/.fuckit"
+    let prompt_file = config_dir + "/custom_prompt.md"
+
+    // --- Test Case 1: Custom prompt file does not exist ---
+    echo "Running test case 1: No custom prompt file"
+    // Ensure the file doesn't exist
+    if file_exists(prompt_file) {
+        trust $ rm {prompt_file} $
+    }
+    let prompt_without_custom = get_custom_prompt()
+    if prompt_without_custom == "" {
+        echo "PASS: get_custom_prompt returns empty string as expected."
+    } else {
+        echo "FAIL: get_custom_prompt should have returned an empty string."
+        exit 1
+    }
+
+    // --- Test Case 2: Custom prompt file exists ---
+    echo "\nRunning test case 2: Custom prompt file exists"
+    // Create a dummy prompt file
+    if not dir_exists(config_dir) {
+        dir_create(config_dir)
+    }
+    let custom_content = "This is a custom instruction."
+    file_write(prompt_file, custom_content)?
+
+    let prompt_with_custom = get_custom_prompt()
+    if prompt_with_custom == custom_content {
+        echo "PASS: get_custom_prompt returns the correct content."
+    } else {
+        echo "FAIL: get_custom_prompt did not return the correct content."
+        exit 1
+    }
+
+    // --- Test Case 3: Integration with get_core_prompt ---
+    echo "\nRunning test case 3: Core prompt integration"
+    let core_prompt_with_custom = get_core_prompt()
+    if text_contains(core_prompt_with_custom, custom_content) {
+        echo "PASS: Core prompt contains custom content as expected."
+    } else {
+        echo "FAIL: Core prompt does not contain custom content."
+        exit 1
+    }
+
+
+    // Cleanup
+    trust $ rm {prompt_file} $
+    trust $ rmdir {config_dir} $
+}

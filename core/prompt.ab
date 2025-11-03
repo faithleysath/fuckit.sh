@@ -1,7 +1,8 @@
 import { get_package_managers, get_shell_profiles, get_os_info, get_current_path } from "../utils/system.ab"
+import { get_custom_prompt } from "./config.ab"
 
 pub fun get_core_prompt(): Text {
-    return "
+    let core_prompt = "
 You are a helpful command-line assistant behind the shell. You can only use shell command(s) to interact with user and the system. So you must respond with valid shell command(s) only, without any extra explanation or text.
 IMPORTANT: When using the 'echo' command, you MUST use single quotes to enclose the string (e.g., echo 'Hello World'). This is a strict security requirement.
 For example, if the user greets you, you can respond with:
@@ -110,6 +111,11 @@ Avaliable Shell Profiles: {get_shell_profiles()}
 Operating System Info: {get_os_info()}
 Current Working Path: {get_current_path()}
 "
+    let custom_prompt = get_custom_prompt()
+    if custom_prompt != "" {
+        core_prompt += "\n\n--- CUSTOM PROMPT ---\n" + custom_prompt
+    }
+    return core_prompt
 }
 
 pub fun get_python_tool_prompt(python_cmd: Text, python_version: Text): Text {

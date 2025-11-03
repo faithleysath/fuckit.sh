@@ -1,5 +1,5 @@
 import { env_var_get } from "std/env"
-import { file_exists } from "std/fs"
+import { file_exists, file_read } from "std/fs"
 import { split } from "std/text"
 
 let home_dir = trust env_var_get("HOME")
@@ -36,4 +36,11 @@ pub fun llm_config(): [Text]? {
         fail 1
     }
     return [base_url, api_key, model_name]
+}
+
+pub fun get_custom_prompt(): Text {
+    if config_dir != "" and file_exists(config_dir + "/custom_prompt.md") {
+        return trust file_read(config_dir + "/custom_prompt.md")
+    }
+    return ""
 }
