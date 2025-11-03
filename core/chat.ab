@@ -1,7 +1,9 @@
 import { env_var_get, echo_error, echo_warning, echo_info, echo_success, input_prompt, input_confirm } from "std/env"
 import { request_llm } from "../utils/llm.ab"
-import { get_core_prompt } from "./prompt.ab"
+import { get_core_prompt, get_python_tool_prompt } from "./prompt.ab"
 import { check_llm_output } from "../utils/security.ab"
+import { get_python_info } from "../utils/system.ab"
+import { split } from "std/text"
 
 pub fun start_chat_session(initial_prompt: [Text]): Null {
     // Step 1: Load configuration from environment variables
@@ -18,6 +20,15 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
     let user_history = [Text]
     let assistant_history = [Text]
     let system_prompt = get_core_prompt()
+
+    // Check for python and enhance prompt if available
+    let python_info = get_python_info()
+    if len(python_info) > 0 {
+        let python_details = split(python_info[0], " ")
+        let python_cmd = python_details[0]
+        let python_version = python_details[1]
+        system_prompt += get_python_tool_prompt(python_cmd, python_version)
+    }
 
     // Step 3: Start the interactive chat loop
     let current_user_prompt = "{initial_prompt}"
@@ -55,11 +66,11 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
         let execution_context = ""
         if should_execute {
             if not is_safe {
-                echo_info("Executing in 3 seconds... Press Ctrl+C to cancel.")
-                trust $ sleep 3 $
+                echo_info("Executing in 1 second... Press Ctrl+C to cancel.")
+                trust $ sleep 1 $
             }
             scode = 0
-            let output = $ set -o pipefail; bash -c "{assistant_response}" | tee /dev/tty $ failed {
+            let output = $ set -o pipefail; bash -c "set -e; set -o pipefail;\n{assistant_response}" | tee /dev/tty $ failed {
                 scode = status
                 if status == 201 {
                     echo_info("Session ended by assistant because he thinks the task is complete.")
@@ -78,8 +89,12 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
                     echo_warning("Script execution failed with status: {status}")
                 }
             }
-            echo_success("Execution finished.")
-            execution_context = "Command executed with exit code: {scode}.\nOutput:\n---\n{output}\n---"
+            if scode == 0:
+                echo_success("Execution finished.")
+            if is_safe:
+                execution_context = "Your echoed script executed successfully, user has seen the output."
+            else:
+                execution_context = "Script executed with exit code: {scode}.\nScript Output:\n---\n{output}\n---"
         } else {
             echo_warning("Execution skipped by user.")
             execution_context = "User chose not to execute the script."
@@ -102,7 +117,6 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
             break
         }
         current_user_prompt = "{execution_context}\n\nUser's next instruction: {next_user_input}"
-        echo current_user_prompt
     }
     echo_info("Session ended by user.")
 }

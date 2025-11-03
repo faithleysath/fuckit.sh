@@ -122,5 +122,6 @@ To use python, feel free to write like this in the shell script:
 EOF
 Remember to close the python code block with EOF.
 Make sure the python code is indented properly if needed.
+Always use here document (<< 'EOF' ... EOF) to embed python code in the shell script. Do not use -c option to pass code directly.
 "
 }

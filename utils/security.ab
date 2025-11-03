@@ -1,4 +1,4 @@
-import { split_lines, text_contains, starts_with } from "std/text"
+import { split_lines, text_contains, starts_with, trim } from "std/text"
 
 fun custom_match_regex(text: Text, pattern: Text): Bool {
     silent $ printf "%s" "{text}" | grep -qE -- "{pattern}" $ failed {
@@ -21,6 +21,10 @@ pub fun check_llm_output(script_content: Text): Bool {
     let lines = split_lines(script_content)
 
     for line in lines {
+        // Rule checks for set -o pipefail;
+        if trim(line) == "set -o pipefail;" or trim(line) == "set -e;" or trim(line) == "set -e; set -o pipefail;":
+            continue
+        
         // Rule 0: Disallow Shebang
         if starts_with(line, "#!"):
             return false
