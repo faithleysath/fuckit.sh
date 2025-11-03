@@ -5,7 +5,7 @@ import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
 import { file_download } from "std/http"
 import { compare_versions } from "../utils/utils.ab"
 
-pub fun install(home_dir: Text, name: Text, version: Text, url: Text): Null {
+pub fun install(home_dir: Text, name: Text, civil_name: Text, version: Text, url: Text): Null {
     // First, check if already installed, just check version command directly
     let current_version = $ {name} --version 2> /dev/null $ failed : let current_version = ""
 
@@ -53,7 +53,15 @@ pub fun install(home_dir: Text, name: Text, version: Text, url: Text): Null {
         echo_error("Installation failed: Unable to verify installation. (It means executing '{bin_path} --version' did not return any output or just failed.) Please check the above information and try again.")
     } else :
         echo_success("fuckit.sh version {installed_version} installed successfully at '{bin_path}'!")
-    // Step6: Warn if bin_dir is not in PATH
+        // Step 6: Create a civilized alias
+        let civil_path = bin_dir + "/" + civil_name
+        if not file_exists(civil_path) {
+            echo_info("Creating a civilized alias '{civil_name}'...")
+            $ ln -s "{bin_path}" "{civil_path}" $ failed {
+                echo_warning("Failed to create alias '{civil_name}'. You can create it manually by running: ln -s {bin_path} {civil_path}")
+            }
+        }
+    // Step7: Warn if bin_dir is not in PATH
     if path_env != "" and not array_contains(split(path_env, ":"), bin_dir) {
         echo_warning("Warning: '{bin_dir}' is not in your PATH environment variable. You may need to add it manually to run 'fuckit.sh' easily.")
         echo_info("You can add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc):")

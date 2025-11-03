@@ -70,7 +70,7 @@ main (arguments) {
 
         // Install / Upgrade
         len(script_args) == 0 and not starts_with(script_name, home_dir + "/.local/bin"):
-            install(home_dir, NAME, VERSION, URL)
+            install(home_dir, NAME, NAME_CIVIL, VERSION, URL)
 
         // Usage
         len(script_args) == 0 and starts_with(script_name, home_dir + "/.local/bin"):
