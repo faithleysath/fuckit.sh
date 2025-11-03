@@ -44,3 +44,10 @@ pub fun get_custom_prompt(): Text {
     }
     return ""
 }
+
+pub fun get_memory(): Text {
+    if config_dir != "" and file_exists(config_dir + "/memory.md") {
+        return trust file_read(config_dir + "/memory.md")
+    }
+    return ""
+}
