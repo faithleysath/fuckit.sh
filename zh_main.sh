@@ -36,7 +36,7 @@ readonly FCKN="${C_RED}你他妈${C_RESET}"
 
 # --- 配置 ---
 if [ -z "${HOME:-}" ]; then
-    echo -e "\033[1;31m操你妈!\033[0m \033[0;31m你的 HOME 变量没设置，我他妈怎么知道装哪儿？自己搞定！ (比如 export HOME=/root)\033[0m" >&2
+    echo -e "\033[0;31m你的 HOME 变量没设置，我他怎么知道装哪儿？自己搞定！ (比如 export HOME=/root)\033[0m" >&2
     exit 1
 fi
 readonly INSTALL_DIR="$HOME/.fuck"
@@ -125,15 +125,36 @@ _fuck_collect_sysinfo_string() {
     echo "OS: $(uname -s), Arch: $(uname -m), Shell: ${SHELL:-unknown}, PkgMgr: $pkg_manager, CWD: $(pwd)"
 }
 
-# JSON 转义，免得出问题
+# 统一的编码函数 - 解决中文和特殊字符问题
 _fuck_json_escape() {
-    # 就转义那几个特殊字符
-    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g' -e 's/\t/\\t/g'
+    local string="$1"
+    local length=${#string}
+    local result=""
+    local i char encoded
+    
+    for ((i = 0; i < length; i++)); do
+        char="${string:$i:1}"
+        case "$char" in
+            # 转义JSON特殊字符
+            '\\') encoded='\\\\' ;;
+            '"') encoded='\\"' ;;
+            $'\n') encoded='\\n' ;;
+            $'\r') encoded='\\r' ;;
+            $'\t') encoded='\\t' ;;
+            # 普通ASCII字符直接输出
+            [ -z "${char//[ -~]/}" ]) encoded="$char" ;;
+            # 中文字符和其他非ASCII字符 - 保持原样（依赖服务端正确解析）
+            *) encoded="$char" ;;
+        esac
+        result="${result}${encoded}"
+    done
+    
+    printf '%s' "$result"
 }
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着？行，好吧，我走了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -147,7 +168,7 @@ _uninstall_script() {
             sed -i.bak "\|# Added by fuckit.sh installer|d" "$profile_file"
         fi
     else
-        echo -e "${C_YELLOW}找不到 shell 配置文件，你他妈自己看着办吧。${C_RESET}"
+        echo -e "${C_YELLOW}找不到 shell 配置文件，你自己看着办吧。${C_RESET}"
     fi
 
     if [ -d "$INSTALL_DIR" ]; then
@@ -155,7 +176,7 @@ _uninstall_script() {
     fi
 
     sleep 3
-    echo -e "${C_GREEN}行，我滚了，以后别他妈哭着求我回来。${C_CYAN}赶紧重启你那破终端吧，我看见你就烦。${C_RESET}"
+    echo -e "${C_GREEN}行，我先走一步，告辞。${C_CYAN}赶紧重启你那终端吧，不然别名污染可别怪我。${C_RESET}"
     sleep 3
     echo -e "${C_YELLOW}临别之际，献上一首小诗，祝您前程似锦：${C_RESET}"
     sleep 2
@@ -184,12 +205,12 @@ _fuck_execute_prompt() {
     fi
 
     if ! command -v curl &> /dev/null; then
-        echo -e "$FUCK ${C_RED}'fuck' 命令要用 'curl'，你他妈连这都没装？赶紧去装！${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}'fuck' 命令要用 'curl'，你连这都没装？赶紧去装！${C_RESET}" >&2
         return 1
     fi
 
     if [ "$#" -eq 0 ]; then
-        echo -e "$FUCK ${C_RED}你他妈哑巴了？到底要我干啥？${C_RESET}" >&2
+        echo -e "${C_RED}你要我干啥？一句话不说的，你不会想要用那个thefuck吧。${C_RESET}" >&2
         return 1
     fi
 
@@ -216,12 +237,12 @@ _fuck_execute_prompt() {
         -d "$payload")
 
     if [ -z "$response" ]; then
-        echo -e "$FUCK ${C_RED}AI 那孙子装死呢，屁都没放一个。${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}AI 什么响应也没有，自己去查man${C_RESET}" >&2
         return 1
     fi
 
     # --- 用户确认 ---
-    echo -e "${C_YELLOW}--- AI 瞎逼逼了这些，你他妈自己看吧 ---${C_RESET}"
+    echo -e "${C_YELLOW}------- AI 生成了这些，你自己看吧 -------${C_RESET}"
     # 直接输出
     echo -e "${C_CYAN}$response${C_RESET}"
     echo -e "${C_YELLOW}------------------------------------------${C_RESET}"
@@ -232,21 +253,22 @@ _fuck_execute_prompt() {
     read -r confirmation < /dev/tty
 
     if [[ "$confirmation" =~ ^[yY]([eE][sS])?$ ]]; then
-        echo -e "${C_RED_BOLD}我操！${C_RESET}${C_CYAN} 还等啥呢，干他妈的！${C_RESET}" >&2
+        echo -e "${C_CYAN} 还等啥呢，启动！${C_RESET}" >&2
         # 执行服务器返回的命令并检查退出码
         if eval "$response"; then
-            echo -e "${C_GREEN}完事了，应该没啥问题，有问题也是你的问题。${C_RESET}"
+            echo -e "${C_GREEN}完事了，应该没啥问题。${C_RESET}"
         else
             local exit_code=$?
-            echo -e "${C_RED_BOLD}操！${C_RED}这破命令执行失败了，退出码是 $exit_code。别他妈看我，自己想办法。${C_RESET}" >&2
+            echo -e "${C_RED}这命令执行失败了，退出码是 $exit_code。别看我，自己想办法。${C_RESET}" >&2
         fi
     else
-        echo -e "${C_RED}怂逼！不干就滚，别浪费老子时间。${C_RESET}" >&2
+        echo -e "${C_RED}已撤销。${C_RESET}" >&2
     fi
 }
 
 # 定义别名
 alias fuck='_fuck_execute_prompt'
+alias man-pro='_fuck_execute_prompt'
 
 # --- 核心逻辑结束 ---
 EOF
@@ -278,14 +300,14 @@ _installer_detect_profile() {
 
 # 主安装函数
 _install_script() {
-    echo -e "${C_BOLD}行了，开始装这破玩意儿，你他妈最好别后悔...${C_RESET}"
+    echo -e "${C_BOLD}行了，开始安装，安装完了我会叫你${C_RESET}"
     mkdir -p "$INSTALL_DIR"
     
     # 把核心逻辑写进 main.sh
     echo "$CORE_LOGIC" > "$MAIN_SH"
     
     if [ $? -ne 0 ]; then
-        echo -e "$FUCK ${C_RED}写不进去文件，你他妈看看权限是不是有问题。${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}写不进去文件，你看看权限是不是有问题。${C_RESET}" >&2
         return 1
     fi
 
@@ -294,8 +316,8 @@ _install_script() {
     profile_file=$(_installer_detect_profile)
     
     if [ "$profile_file" = "unknown_profile" ]; then
-        echo -e "$FUCK ${C_RED}找不到 .bashrc, .zshrc, or .profile，你他妈用的什么野鸡shell？${C_RESET}" >&2
-        echo -e "${C_YELLOW}自己把这行加到你的启动文件里，别他妈指望我：${C_RESET}" >&2
+        echo -e "$FUCK ${C_RED}找不到 .bashrc, .zshrc, 或 .profile，你用的什么神奇shell？${C_RESET}" >&2
+        echo -e "${C_YELLOW}自己把这行加到你的启动文件里，我是没办法了：${C_RESET}" >&2
         echo -e "\n  ${C_CYAN}source $MAIN_SH${C_RESET}\n" >&2
         return
     fi
@@ -308,18 +330,20 @@ _install_script() {
         fi
         echo "# Added by fuckit.sh installer" >> "$profile_file"
         echo "$source_line" >> "$profile_file"
-        echo -e "${C_RED_BOLD}我操！${C_RESET} ${C_GREEN}装好了，赶紧滚去干活，别在这儿逼逼赖赖。${C_RESET}"
-        echo -e "${C_YELLOW}重启你那破终端，要不就 ${C_BOLD}source $profile_file${C_YELLOW}，赶紧的别磨叽！${C_RESET}"
+        echo -e "${C_GREEN}装好了${C_RESET}"
+        echo -e "${C_YELLOW}重启你那终端，要不就 ${C_BOLD}source $profile_file${C_YELLOW}，赶紧的别磨叽！${C_RESET}"
         echo -e "\n${C_BOLD}--- 咋用 ---${C_RESET}"
-        echo -e "就直接 ${C_RED_BOLD}fuck${C_RESET} 后边跟上你要干的破事儿就完了。"
+        echo -e "就直接 ${C_RED_BOLD}fuck${C_RESET} 后边跟上你要干的事儿就完了。"
+        echo -e "或 ${C_RED_BOLD}man-pro${C_RESET} 后边跟上你要干的事儿就完了。"
         echo -e "比方说:"
         echo -e "  ${C_CYAN}fuck install git${C_RESET}"
         echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
-        echo -e "  ${C_CYAN}fuck 找出当前目录所有大于10MB的文件${C_RESET}"
-        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# 把我自个儿卸了（卸了就卸了，谁他妈稀罕）${C_RESET}"
-        echo -e "\n${C_YELLOW}记住了，重启你那破终端再用！${C_RESET}"
+        echo -e "  ${C_CYAN}man-pro 找出当前目录所有大于10MB的文件${C_RESET}"
+        echo -e "  ${C_RED_BOLD}man-pro uninstall${C_RESET} ${C_GREEN}# 卸载${C_RESET}"
+        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# 卸载${C_RESET}"
+        echo -e "\n${C_YELLOW}记住了，重启你那终端再用！${C_RESET}"
     else
-        echo -e "$FUCK ${C_YELLOW}已经装过了，你个傻逼。帮你更新了一下脚本。${C_RESET}"
+        echo -e "$FUCK ${C_YELLOW}已经装过了，帮你更新了一下脚本。${C_RESET}"
     fi
 }
 
