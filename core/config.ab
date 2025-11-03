@@ -1,4 +1,4 @@
-const URL = "https://fuckit.sh"
+const URL = "https://dev.fuckit.sh"
 
 import { env_var_get, echo_warning } from "std/env"
 import { file_exists, file_read } from "std/fs"

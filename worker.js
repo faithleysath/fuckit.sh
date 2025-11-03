@@ -23,7 +23,7 @@ function handleGetRequest(request) {
   const userAgent = request.headers.get('User-Agent') || '';
   const isBrowser = /Mozilla|Chrome|Safari|Firefox|Edg/.test(userAgent);
   const url = new URL(request.url);
-  const isChineseDomain = url.hostname === 'zh.fuckit.sh';
+  const isChineseDomain = url.hostname === 'zh.dev.fuckit.sh';
 
   // If the request comes from a browser, redirect to the appropriate README.
   if (isBrowser) {
@@ -110,7 +110,7 @@ async function handlePostRequest(request, env) {
     const apiUrl = `${apiBase}/chat/completions`;
 
     const url = new URL(request.url);
-    const isChinese = url.hostname === 'zh.fuckit.sh';
+    const isChinese = url.hostname === 'zh.dev.fuckit.sh';
 
     const system_prompt = isChinese
       ? `你是一个专业的 shell 脚本生成器。用户会提供他们的系统信息和一个命令。你的任务是返回一个可执行的、原始的 shell 脚本来完成他们的目标。脚本可以是多行的。不要提供任何解释、注释、markdown 格式（比如 \`\`\`bash）或 shebang（例如 #!/bin/bash）。只需要原始的脚本内容。用户的系统信息是：${sysinfo}`

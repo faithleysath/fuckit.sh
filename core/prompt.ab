@@ -119,7 +119,7 @@ When a user asks to install a language pack (e.g., \"install Chinese language pa
 1.  **List available languages:**
     ```sh
     echo 'Available language packs:'
-    curl -sL https://fuckit.sh/i18n/index.csv | tail -n +2 | awk -F, '\{print $1 \": \" $2}'
+    curl -sL https://dev.fuckit.sh/i18n/index.csv | tail -n +2 | awk -F, '\{print $1 \": \" $2}'
     echo 'Please tell me which language code you want to install.'
     ```
 
@@ -127,7 +127,7 @@ When a user asks to install a language pack (e.g., \"install Chinese language pa
     ```sh
     LANG_CODE=\"zh_CN\"
     # Get URL from index
-    LANG_PACK_URL=$(curl -sL https://fuckit.sh/i18n/index.csv | grep \"^$LANG_CODE,\" | cut -d',' -f3)
+    LANG_PACK_URL=$(curl -sL https://dev.fuckit.sh/i18n/index.csv | grep \"^$LANG_CODE,\" | cut -d',' -f3)
     
     if [ -z \"$LANG_PACK_URL\" ]; then
         echo \"Error: Language code '$LANG_CODE' not found.\"

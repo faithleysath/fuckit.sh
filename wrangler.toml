@@ -3,11 +3,11 @@ main = "worker.js"
 compatibility_date = "2025-10-26"
 
 [[routes]]
-pattern = "fuckit.sh"
+pattern = "dev.fuckit.sh"
 custom_domain = true
 
 [[routes]]
-pattern = "zh.fuckit.sh"
+pattern = "zh.dev.fuckit.sh"
 custom_domain = true
 
 [assets]
