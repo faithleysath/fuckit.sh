@@ -4,15 +4,20 @@ import { get_core_prompt, get_python_tool_prompt } from "./prompt.ab"
 import { check_llm_output } from "../utils/security.ab"
 import { get_python_info } from "../utils/system.ab"
 import { split } from "std/text"
+import { llm_config } from "./config.ab"
 
 pub fun start_chat_session(initial_prompt: [Text]): Null {
-    // Step 1: Load configuration from environment variables
-    let base_url = trust env_var_get("FUCKIT_BASE_URL")
-    let api_key = trust env_var_get("FUCKIT_API_KEY")
-    let model_name = trust env_var_get("FUCKIT_MODEL_NAME")
+    // Step 1: Load configuration
+    let config = llm_config() failed {
+        echo_error("LLM configuration is missing or invalid. Please set FUCKIT_BASE_URL and FUCKIT_API_KEY environment variables, or create a config file at ~/.fuckit/llm_config.env.")
+        exit 1
+    }
+    let base_url = config[0]
+    let api_key = config[1]
+    let model_name = config[2]
 
-    if base_url == "" or api_key == "" or model_name == "" {
-        echo_error("LLM configuration is missing. Please set FUCKIT_BASE_URL, FUCKIT_API_KEY, and FUCKIT_MODEL_NAME environment variables.")
+    if model_name == "" {
+        echo_error("LLM model name is missing. Please set FUCKIT_MODEL_NAME environment variable or add it to your config file.")
         exit 1
     }
 
