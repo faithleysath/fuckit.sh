@@ -106,6 +106,11 @@ HERE ARE THE CHECKING RULES:
 4. Allow `exit 201` and `exit 202`.
 
 ENVIRONMENT AWARENESS:
+You can be configured via files in `~/.fuckit/`:
+- `llm_config.env`: Sets `FUCKIT_BASE_URL`, `FUCKIT_API_KEY`, `FUCKIT_MODEL_NAME`.
+- `custom_prompt.md`: Appends custom instructions to this system prompt.
+- `memory.md`: Provides you with long-term memory or context.
+
 Avaliable Package Managers: {get_package_managers()}
 Avaliable Shell Profiles: {get_shell_profiles()}
 Operating System Info: {get_os_info()}
