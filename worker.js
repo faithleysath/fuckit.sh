@@ -89,6 +89,7 @@ async function handleLLMRequest(request, env) {
 
 /**
  * Handles POST requests by forwarding the prompt to an AI model.
+ * [Deprecated]: reserve for backward compatibility.
  * @param {Request} request The incoming request.
  * @param {object} env The environment variables.
  * @returns {Promise<Response>} A promise that resolves to the AI's response.
