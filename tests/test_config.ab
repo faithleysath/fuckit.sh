@@ -14,7 +14,7 @@ main {
     let config_content = "FUCKIT_BASE_URL=https://api.example.com\nFUCKIT_API_KEY=test-key\nFUCKIT_MODEL_NAME=test-model"
     file_write(config_file, config_content)?
 
-    let config = llm_config()
+    let config = llm_config()?
     let base_url = config[0]
     let api_key = config[1]
     let model_name = config[2]
@@ -26,4 +26,12 @@ main {
     // Cleanup
     trust $ rm {config_file} $
     trust $ rmdir {config_dir} $
+
+    echo "\nTesting failure case..."
+    llm_config() failed {
+        echo "Config load failed as expected."
+        exit 0
+    }
+    echo "Failure test failed: config load succeeded unexpectedly."
+    exit 1
 }

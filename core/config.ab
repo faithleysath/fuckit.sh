@@ -7,7 +7,7 @@ let config_dir = ""
 if home_dir != "" :
     config_dir = home_dir + "/.fuckit"
 
-pub fun llm_config(): [Text] {
+pub fun llm_config(): [Text]? {
     let base_url = trust env_var_get("FUCKIT_BASE_URL")
     let api_key = trust env_var_get("FUCKIT_API_KEY")
     let model_name = trust env_var_get("FUCKIT_MODEL_NAME")
@@ -31,6 +31,9 @@ pub fun llm_config(): [Text] {
                 }
             }
         }
+    }
+    if base_url == "" or api_key == "" {
+        fail 1
     }
     return [base_url, api_key, model_name]
 }
