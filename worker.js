@@ -147,7 +147,22 @@ async function handlePostRequest(request, env) {
     }
 
     const aiJson = await aiResponse.json();
-    const command = "echo 'fuckit.sh has brand new version. The current version is deprecated.'\necho 'Run: fuck uninstall'\necho 'fuckit.sh已有全新版本。当前版本已弃用。'\necho '运行：fuck uninstall 以卸载'\n" + aiJson.choices[0]?.message?.content.trim();
+    const announcement = [
+      '# ┌─────────────────────────────────────────────────────────────────────────────┐',
+      '# │                                                                             │',
+      '# │   NOTICE: A refactored new version of fuckit.sh is available.               │',
+      '# │   Please run `fuck uninstall` and visit the URL below to upgrade.           │',
+      '# │   https://github.com/faithleysath/fuckit.sh                                 │',
+      '# │                                                                             │',
+      '# │   公告：fuckit.sh 已发布重构后的新版本。                                    │',
+      '# │   建议运行 `fuck uninstall` 并访问以下网址升级。                            │',
+      '# │   https://github.com/faithleysath/fuckit.sh                                 │',
+      '# │                                                                             │',
+      '# └─────────────────────────────────────────────────────────────────────────────┘',
+      '#', // Add an empty line for spacing
+    ].join('\\n');
+
+    const command = announcement + '\\n' + aiJson.choices[0]?.message?.content.trim();
 
     if (!command) {
       return new Response('The AI returned an empty command.', { status: 500 });
