@@ -18,12 +18,16 @@ pub fun llm_config(): [Text] {
             if len(parts) == 2 {
                 let key = parts[0]
                 let value = parts[1]
-                if key == "FUCKIT_BASE_URL" {
-                    base_url = value
-                } else if key == "FUCKIT_API_KEY" {
-                    api_key = value
-                } else if key == "FUCKIT_MODEL_NAME" {
-                    model_name = value
+                if {
+                    key == "FUCKIT_BASE_URL" {
+                        base_url = value
+                    }
+                    key == "FUCKIT_API_KEY" {
+                        api_key = value
+                    }
+                    key == "FUCKIT_MODEL_NAME" {
+                        model_name = value
+                    }
                 }
             }
         }

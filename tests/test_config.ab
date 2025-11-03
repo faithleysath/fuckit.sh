@@ -1,6 +1,6 @@
 import { llm_config } from "../core/config.ab"
 import { file_write, dir_create, dir_exists } from "std/fs"
-import { env_var_get, echo_error } from "std/env"
+import { env_var_get } from "std/env"
 
 main {
     let home_dir = trust env_var_get("HOME")
@@ -12,11 +12,9 @@ main {
         dir_create(config_dir)
     }
     let config_content = "FUCKIT_BASE_URL=https://api.example.com\nFUCKIT_API_KEY=test-key\nFUCKIT_MODEL_NAME=test-model"
-    file_write(config_file, config_content)
+    file_write(config_file, config_content)?
 
-    let config = llm_config() failed {
-        echo_error("Failed to load LLM configuration.")
-    }
+    let config = llm_config()
     let base_url = config[0]
     let api_key = config[1]
     let model_name = config[2]
