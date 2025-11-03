@@ -70,7 +70,7 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
                 trust $ sleep 1 $
             }
             scode = 0
-            let output = $ set -o pipefail; bash -c "set -e; set -o pipefail;\n{assistant_response}" | tee /dev/tty $ failed {
+            let output = $ set -o pipefail; bash -c "set -e; set -o pipefail;\n{assistant_response}" 2>&1 | tee /dev/tty $ failed {
                 scode = status
                 if status == 201 {
                     echo_info("Session ended by assistant because he thinks the task is complete.")
