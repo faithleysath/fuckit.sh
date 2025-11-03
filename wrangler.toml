@@ -1,6 +1,6 @@
-name = "fuckit-sh" # 您可以自定义 Worker 的名称
-main = "worker.js" # 指定入口文件
-compatibility_date = "2025-10-26" # 使用一个近期的日期
+name = "fuckit-sh" 
+main = "worker.js"
+compatibility_date = "2025-10-26"
 
 [[routes]]
 pattern = "fuckit.sh"
@@ -9,3 +9,7 @@ custom_domain = true
 [[routes]]
 pattern = "zh.fuckit.sh"
 custom_domain = true
+
+[assets]
+directory = "./public"
+run_worker_first = true

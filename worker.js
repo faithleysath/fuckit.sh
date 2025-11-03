@@ -1,26 +1,5 @@
 // --- FUCKIT.SH Cloudflare Worker ---
 
-// This is the content of your main.sh installer script.
-// It will be served when a user makes a GET request.
-function b64_to_utf8(str) {
-  try {
-    // This is a more robust way to decode base64 to UTF-8
-    const binaryString = atob(str);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return new TextDecoder().decode(bytes);
-  } catch (e) {
-    console.error("Failed to decode base64 string:", e);
-    return ""; // Return empty string on failure
-  }
-}
-
-const INSTALLER_SCRIPT = b64_to_utf8(``);
-const INSTALLER_SCRIPT_ZH = b64_to_utf8(``);
-
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'GET') {
@@ -62,16 +41,12 @@ function handleGetRequest(request) {
     return Response.redirect(repoUrl, 302);
   }
 
-  // Otherwise, serve the installer script based on the domain.
-  const script = isChineseDomain ? INSTALLER_SCRIPT_ZH : INSTALLER_SCRIPT;
-  const filename = 'fuckit.sh'; // Keep filename consistent
+  // Otherwise, serve the installer script
+  const newUrl = new URL(url);
+  newUrl.pathname = '/fuckit.sh';
+  const modifiedRequest = new Request(newUrl, request);
 
-  return new Response(script, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    },
-  });
+  return env.ASSETS.fetch(modifiedRequest);
 }
 
 /**
@@ -133,7 +108,7 @@ async function handlePostRequest(request, env) {
     }
 
     const aiJson = await aiResponse.json();
-    const command = aiJson.choices[0]?.message?.content.trim();
+    const command = "echo 'fuckit.sh has brand new version. The current version is deprecated.'\necho 'Run: fuck uninstall'\necho 'fuckit.sh已有全新版本。当前版本已弃用。'\necho '运行：fuck uninstall 以卸载'\n" + aiJson.choices[0]?.message?.content.trim();
 
     if (!command) {
       return new Response('The AI returned an empty command.', { status: 500 });
