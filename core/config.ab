@@ -1,4 +1,4 @@
-const URL = "https://dev.fuckit.sh"
+const URL = "http://localhost:8787/"
 
 import { env_var_get, echo_warning } from "std/env"
 import { file_exists, file_read } from "std/fs"
@@ -47,7 +47,7 @@ pub fun llm_config(): [Text] {
         echo_warning("No Custom LLM Config Found! Using fuckit.sh Official LLM Endpoint.")
         base_url = URL
         api_key = ""
-        model_name = ""
+        model_name = "default"
     }
     return [base_url, api_key, model_name]
 }

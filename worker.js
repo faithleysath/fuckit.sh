@@ -3,7 +3,7 @@
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'GET') {
-      return handleGetRequest(request);
+      return handleGetRequest(request, env);
     } else if (new URL(request.url).pathname === '/chat/completions' && request.method === 'POST') {
       return handleLLMRequest(request, env);
     } else if (request.method === 'POST') {
@@ -19,7 +19,7 @@ export default {
  * @param {Request} request The incoming request.
  * @returns {Response} A response with the shell script or a redirect.
  */
-function handleGetRequest(request) {
+function handleGetRequest(request, env) {
   const userAgent = request.headers.get('User-Agent') || '';
   const isBrowser = /Mozilla|Chrome|Safari|Firefox|Edg/.test(userAgent);
   const url = new URL(request.url);
