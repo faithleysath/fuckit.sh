@@ -4,7 +4,7 @@ export default {
   async fetch(request, env, ctx) {
     if (request.method === 'GET') {
       return handleGetRequest(request);
-    } else if (request.url == '/chat/completions' && request.method === 'POST') {
+    } else if (new URL(request.url).pathname === '/chat/completions' && request.method === 'POST') {
       return handleLLMRequest(request, env);
     } else if (request.method === 'POST') {
       return handlePostRequest(request, env);
@@ -52,7 +52,39 @@ function handleGetRequest(request) {
 }
 
 async function handleLLMRequest(request, env) {
+  try {
+    // Ensure the API key is configured on the server
+    if (!env.OPENAI_API_KEY) {
+      return new Response('Missing OPENAI_API_KEY secret', { status: 500 });
+    }
 
+    // Get the client's request body
+    const requestBody = await request.json();
+
+    // Determine the model to use from server-side environment variables, overriding any client-sent value.
+    const model = env.OPENAI_API_MODEL || 'gpt-4-turbo';
+    requestBody.model = model;
+
+    // Define the API endpoint from server-side environment variables
+    const apiBase = (env.OPENAI_API_BASE || 'https://api.openai.com/v1').replace(/\/$/, '');
+    const apiUrl = `${apiBase}/chat/completions`;
+
+    // Forward the modified request to the actual AI service
+    const aiResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    // Return the AI's response directly and transparently to the client
+    return aiResponse;
+
+  } catch (error) {
+    return new Response(`Error: ${error.message}`, { status: 500 });
+  }
 }
 
 /**
