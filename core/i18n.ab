@@ -1,0 +1,101 @@
+import { env_var_get, env_var_set } from "std/env"
+import { file_exists } from "std/fs"
+import { split, starts_with, join } from "std/text"
+
+fun get_persona_config_dir(): Text {
+    let home_dir = trust env_var_get("HOME")
+    if home_dir == "" {
+        return ""
+    }
+    let persona = trust env_var_get("FUCKIT_PERSONA")
+    if persona == "" {
+        // Default to 'fuck' if no persona is set
+        persona = "fuck"
+    }
+    return "{home_dir}/.fuckit/{persona}"
+}
+
+// init_i18n sets up the UI messages.
+// It first sets the default English messages, then overrides them
+// with a language pack from the persona's config directory if it exists.
+pub fun init_i18n() {
+    // Set default English messages
+    trust env_var_set("MSG_INSTALL_START", "fuckit.sh is not installed. Installing now...")
+    trust env_var_set("MSG_INSTALL_UPGRADE_AVAILABLE", "A new version (\{version}) is available. Your current version is \{current_version}. Upgrading...")
+    trust env_var_set("MSG_INSTALL_LATEST", "You are already using the latest version (\{current_version}).")
+    trust env_var_set("MSG_ERR_NO_HOME", "Cannot determine home directory. Please ensure HOME environment variable is set.")
+    trust env_var_set("MSG_INSTALL_CREATE_DIR", "Directory '\{bin_dir}' does not exist. Creating it...")
+    trust env_var_set("MSG_INSTALL_DOWNLOADING", "Downloading 'fuckit.sh' to '\{bin_dir}'...(via \{url})")
+    trust env_var_set("MSG_ERR_NO_DOWNLOADER", "No Avaliable CLI Tools Found, Need curl, wget or aria2c.")
+    trust env_var_set("MSG_ERR_CHMOD_FAILED", "Failed to set executable permission on '\{bin_path}'.")
+    trust env_var_set("MSG_ERR_INSTALL_FAILED", "Installation failed: Unable to verify installation.")
+    trust env_var_set("MSG_INSTALL_SUCCESS", "fuckit.sh version \{installed_version} installed successfully at '\{bin_path}'!")
+    trust env_var_set("MSG_WARN_NOT_IN_PATH", "Warning: '\{bin_dir}' is not in your PATH environment variable. You may need to add it manually to run 'fuckit.sh' easily.")
+    trust env_var_set("MSG_CIVIL_ALIAS_CREATING", "Creating a civilized alias '\{civil_name}'...")
+    trust env_var_set("MSG_CIVIL_ALIAS_FAILED", "Failed to create alias '\{civil_name}'. You can create it manually by running: ln -s \{bin_path} \{civil_path}")
+    trust env_var_set("MSG_UNINSTALL_START", "Starting uninstallation process...")
+    trust env_var_set("MSG_UNINSTALL_SEARCHING_ALIASES", "Searching for aliases in '\{bin_dir}'...")
+    trust env_var_set("MSG_UNINSTALL_REMOVE_ALIAS", "  - Removing alias: \{alias_path}")
+    trust env_var_set("MSG_UNINSTALL_NO_ALIASES", "No aliases found.")
+    trust env_var_set("MSG_UNINSTALL_REMOVE_EXEC", "Removing main executable: \{bin_path}")
+    trust env_var_set("MSG_UNINSTALL_CONFIRM_RM_CONFIG", "Do you want to remove all configurations and data from '\{config_dir}'?")
+    trust env_var_set("MSG_UNINSTALL_RM_CONFIG_DIR", "Removing configuration directory: \{config_dir}")
+    trust env_var_set("MSG_UNINSTALL_KEEP_CONFIG_DIR", "Configuration directory '\{config_dir}' was not removed.")
+    trust env_var_set("MSG_UNINSTALL_SUCCESS", "fuckit.sh has been successfully uninstalled.")
+    trust env_var_set("MSG_UNINSTALL_NOT_INSTALLED", "fuckit.sh is not installed at '\{bin_path}', nothing to do.")
+    trust env_var_set("MSG_UNINSTALL_ERR_REMOVE_ALIAS", "    Could not remove alias '\{alias_path}'. Please check permissions.")
+    trust env_var_set("MSG_UNINSTALL_ERR_REMOVE_EXEC", "Failed to remove '\{bin_path}'. Please check permissions and try again.")
+    trust env_var_set("MSG_UNINSTALL_ERR_RM_CONFIG", "Failed to remove '\{config_dir}'. Please check permissions.")
+    trust env_var_set("MSG_ERR_NO_ARGS", "Oops, no arguments provided! It should not happen. But it did. Please visit https://fuckit.sh and report this issue.")
+    trust env_var_set("MSG_ERR_LLM_CONFIG_MISSING", "LLM configuration is missing or invalid. Please set FUCKIT_BASE_URL and FUCKIT_API_KEY environment variables, or create a config file at ~/.fuckit/llm_config.env.")
+    trust env_var_set("MSG_ERR_LLM_MODEL_MISSING", "LLM model name is missing. Please set FUCKIT_MODEL_NAME environment variable or add it to your config file.")
+    trust env_var_set("MSG_ASSISTANT_THINKING", "Assistant is thinking...")
+    trust env_var_set("MSG_ERR_LLM_FAILED", "Failed to get response from LLM. Please check your configuration and network.")
+    trust env_var_set("MSG_PROMPT_RETRY", "Do you want to retry?")
+    trust env_var_set("MSG_SECURITY_CHECK_PASSED", "The script passed the security check.")
+    trust env_var_set("MSG_SECURITY_CHECK_FAILED", "We cannot guarantee the safety of the above script. Please review it carefully.")
+    trust env_var_set("MSG_PROMPT_EXECUTE_ANYWAY", "Do you want to execute it anyway?")
+    trust env_var_set("MSG_EXEC_COUNTDOWN", "Executing in 1 second... Press Ctrl+C to cancel.")
+    trust env_var_set("MSG_SESSION_ENDED_BY_ASSISTANT", "Session ended by assistant because he thinks the task is complete.")
+    trust env_var_set("MSG_SESSION_SUGGEST_END", "Execution finished with suggestion to end the session.")
+    trust env_var_set("MSG_PROMPT_END_SESSION", "Assistant suggested ending the session. End now?")
+    trust env_var_set("MSG_ASSISTANT_CONTINUE", "Assistant requested to continue without user input.")
+    trust env_var_set("MSG_ERR_EXEC_FAILED", "Script execution failed with status: \{status}")
+    trust env_var_set("MSG_EXEC_SUCCESS", "Execution finished.")
+    trust env_var_set("MSG_CONTEXT_EXEC_SUCCESS", "Your echoed script executed successfully, user has seen the output.")
+    trust env_var_set("MSG_CONTEXT_EXEC_FAIL", "Script executed with exit code: \{scode}.\nScript Output:\n---\n\{output}\n---")
+    trust env_var_set("MSG_EXEC_SKIPPED", "Execution skipped by user.")
+    trust env_var_set("MSG_CONTEXT_EXEC_SKIPPED", "User chose not to execute the script.")
+    trust env_var_set("MSG_PROMPT_USER", "You: ")
+    trust env_var_set("MSG_SESSION_ENDED_BY_USER", "Session ended by user.")
+    trust env_var_set("MSG_ALIAS_CREATING", "Creating alias: '\{alias}'...")
+    trust env_var_set("MSG_ALIAS_CREATE_SUCCESS", "Alias '\{alias}' created successfully. You can now use it like any other command.")
+    trust env_var_set("MSG_ALIAS_CONFIG_PATH", "Configuration files are located in ~/.fuckit/\{alias}/")
+    trust env_var_set("MSG_ERR_ALIAS_DELETE_DEFAULT", "Error: The default persona 'fuck' cannot be deleted.")
+    trust env_var_set("MSG_ALIAS_DELETING", "Deleting alias: '\{alias}'...")
+    trust env_var_set("MSG_ALIAS_DELETE_SUCCESS", "Alias '\{alias}' has been deleted.")
+
+    // Check for a persona-specific language file and override the defaults.
+    let config_dir = get_persona_config_dir()
+    if config_dir != "" {
+        let lang_file = "{config_dir}/ui.lang"
+        if file_exists(lang_file) {
+            for line in lines(lang_file) {
+                // Skip comments and empty lines
+                if not line starts_with "#" and line != "" {
+                    let parts = split(line, "=")
+                    if len(parts) >= 2 {
+                        let key = parts[0]
+                        // Re-join the rest of the parts in case the value contains '='
+                        let value = join(parts[1..len(parts)], "=")
+                        // Remove quotes from value
+                        if value starts_with "\"" and value ends_with "\"" {
+                            value = value[1..len(value)-1]
+                        }
+                        trust env_var_set(key, value)
+                    }
+                }
+            }
+        }
+    }
+}

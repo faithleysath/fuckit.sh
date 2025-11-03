@@ -3,18 +3,23 @@ import { request_llm } from "../utils/llm.ab"
 import { get_core_prompt, get_python_tool_prompt } from "./prompt.ab"
 import { check_llm_output } from "../utils/security.ab"
 import { get_python_info } from "../utils/system.ab"
-import { split } from "std/text"
+import { split, replace } from "std/text"
 import { llm_config } from "./config.ab"
 
 pub fun start_chat_session(initial_prompt: [Text]): Null {
     // Step 1: Load configuration
     let config = llm_config() failed {
-        echo_error("LLM configuration is missing or invalid. Please set FUCKIT_BASE_URL and FUCKIT_API_KEY environment variables, or create a config file at ~/.fuckit/llm_config.env.")
+        echo_error(trust env_var_get("MSG_ERR_LLM_CONFIG_MISSING"))
         exit 1
     }
     let base_url = config[0]
     let api_key = config[1]
     let model_name = config[2]
+
+    if model_name == "" {
+        echo_error(trust env_var_get("MSG_ERR_LLM_MODEL_MISSING"))
+        exit 1
+    }
 
     // Step 2: Initialize histories and system prompt
     let user_history = [Text]
@@ -35,11 +40,11 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
     loop {
         user_history += [current_user_prompt]
 
-        echo_info("Assistant is thinking...")
+        echo_info(trust env_var_get("MSG_ASSISTANT_THINKING"))
         let assistant_response = request_llm(base_url, model_name, api_key, system_prompt, user_history, assistant_history) failed {
-            echo_warning("Failed to get response from LLM. Please check your configuration and network.")
+            echo_warning(trust env_var_get("MSG_ERR_LLM_FAILED"))
             // Ask user if they want to retry
-            if input_confirm("Do you want to retry?", true) {
+            if input_confirm(trust env_var_get("MSG_PROMPT_RETRY"), true) {
                 // Remove the last failed prompt from history before retrying
                 user_history = user_history[0..len(user_history)-1]
                 continue
@@ -56,48 +61,50 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
         let should_execute = false
         if is_safe {
             should_execute = true
-            echo_success("The script passed the security check.")
+            echo_success(trust env_var_get("MSG_SECURITY_CHECK_PASSED"))
         } else {
             echo assistant_response
-            echo_warning("We cannot guarantee the safety of the above script. Please review it carefully.")
-            should_execute = input_confirm("Do you want to execute it anyway?", false)
+            echo_warning(trust env_var_get("MSG_SECURITY_CHECK_FAILED"))
+            should_execute = input_confirm(trust env_var_get("MSG_PROMPT_EXECUTE_ANYWAY"), false)
         }
         let scode = 0
         let execution_context = ""
         if should_execute {
             if not is_safe {
-                echo_info("Executing in 1 second... Press Ctrl+C to cancel.")
+                echo_info(trust env_var_get("MSG_EXEC_COUNTDOWN"))
                 trust $ sleep 1 $
             }
             scode = 0
             let output = $ set -o pipefail; bash -c "set -e; set -o pipefail;\n{assistant_response}" 2>&1 | tee /dev/tty $ failed {
                 scode = status
                 if status == 201 {
-                    echo_info("Session ended by assistant because he thinks the task is complete.")
+                    echo_info(trust env_var_get("MSG_SESSION_ENDED_BY_ASSISTANT"))
                     exit 0
                 }
                 if status == 202 {
-                    echo_info("Execution finished with suggestion to end the session.")
-                    if input_confirm("Assistant suggested ending the session. End now?", true) {
+                    echo_info(trust env_var_get("MSG_SESSION_SUGGEST_END"))
+                    if input_confirm(trust env_var_get("MSG_PROMPT_END_SESSION"), true) {
                         exit 0
                     }
                 }
                 if status == 203 {
-                    echo_info("Assistant requested to continue without user input.")
+                    echo_info(trust env_var_get("MSG_ASSISTANT_CONTINUE"))
                     // Skip user input and continue the loop
                 } else {
-                    echo_warning("Script execution failed with status: {status}")
+                    let tpl = trust env_var_get("MSG_ERR_EXEC_FAILED")
+                    echo_warning(replace(tpl, "\{status}", "{status}"))
                 }
             }
             if scode == 0:
-                echo_success("Execution finished.")
+                echo_success(trust env_var_get("MSG_EXEC_SUCCESS"))
             if is_safe:
-                execution_context = "Your echoed script executed successfully, user has seen the output."
+                execution_context = trust env_var_get("MSG_CONTEXT_EXEC_SUCCESS")
             else:
-                execution_context = "Script executed with exit code: {scode}.\nScript Output:\n---\n{output}\n---"
+                let tpl = trust env_var_get("MSG_CONTEXT_EXEC_FAIL")
+                execution_context = replace(replace(tpl, "\{scode}", "{scode}"), "\{output}", output)
         } else {
-            echo_warning("Execution skipped by user.")
-            execution_context = "User chose not to execute the script."
+            echo_warning(trust env_var_get("MSG_EXEC_SKIPPED"))
+            execution_context = trust env_var_get("MSG_CONTEXT_EXEC_SKIPPED")
         }
 
         // Step 5: Get next user input or continue automatically
@@ -108,7 +115,7 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
 
         let next_user_input = ""
         loop {
-            next_user_input = input_prompt("You: ")
+            next_user_input = input_prompt(trust env_var_get("MSG_PROMPT_USER"))
             if next_user_input != "" {
                 break
             }
@@ -118,5 +125,5 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
         }
         current_user_prompt = "{execution_context}\n\nUser's next instruction: {next_user_input}"
     }
-    echo_info("Session ended by user.")
+    echo_info(trust env_var_get("MSG_SESSION_ENDED_BY_USER"))
 }

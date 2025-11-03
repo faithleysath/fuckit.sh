@@ -40,6 +40,7 @@ import { array_contains } from "std/array"
 import { request_llm} from "./utils/llm.ab"
 import { install, uninstall } from "./core/installer.ab"
 import { start_chat_session } from "./core/chat.ab"
+import { init_i18n } from "./core/i18n.ab"
 
 // Get the home directory from environment variable
 let home_dir = trust env_var_get("HOME")
@@ -55,6 +56,8 @@ main (arguments) {
     // Set persona based on the script name, and export it for other modules to use.
     let persona = trust $ basename "{script_name}" $
     trust env_var_set("FUCKIT_PERSONA", persona)
+    // initialize i18n
+    init_i18n()
     // Remaining arguments are passed to the script
     let script_args = arguments[1..len(arguments)]
 

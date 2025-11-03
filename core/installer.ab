@@ -1,5 +1,5 @@
 import { env_var_get, echo_error, echo_warning, echo_info, echo_success, input_confirm } from "std/env"
-import { split } from "std/text"
+import { split, replace } from "std/text"
 import { array_contains } from "std/array"
 import { dir_exists, dir_create, file_chmod, file_exists } from "std/fs"
 import { file_download } from "std/http"
@@ -10,36 +10,46 @@ pub fun install(home_dir: Text, name: Text, civil_name: Text, version: Text, url
     let current_version = $ {name} --version 2> /dev/null $ failed : let current_version = ""
 
     if current_version == "" :
-        echo_info("fuckit.sh is not installed. Installing now...")
+        echo_info(trust env_var_get("MSG_INSTALL_START"))
     else {
         let comparison = compare_versions(current_version, version) failed : let comparison = -1
         if comparison == -1 :
-            echo_warning("A new version ({version}) is available. Your current version is {current_version}. Upgrading...")
+            let tpl = trust env_var_get("MSG_INSTALL_UPGRADE_AVAILABLE")
+            let msg = replace(replace(tpl, "\{version}", version), "\{current_version}", current_version)
+            echo_warning(msg)
         else {
-            echo_info("You are already using the latest version ({current_version}).")
+            let tpl = trust env_var_get("MSG_INSTALL_LATEST")
+            let msg = replace(tpl, "\{current_version}", current_version)
+            echo_info(msg)
             exit 0
         }
     }
     if home_dir == "" :
-        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
+        echo_error(trust env_var_get("MSG_ERR_NO_HOME"))
 
     // Installation / Update process (they are the same here)
     // Step1: Check if the dir exists
     let bin_dir = home_dir + "/.local/bin"
     let bin_path = bin_dir + "/" + name
     if not dir_exists(bin_dir) {
-        echo_info("Directory '{bin_dir}' does not exist. Creating it...")
+        let tpl = trust env_var_get("MSG_INSTALL_CREATE_DIR")
+        let msg = replace(tpl, "\{bin_dir}", bin_dir)
+        echo_info(msg)
         dir_create(bin_dir)
     }
     // Step2: Check if bin_dir is in PATH
     let path_env = trust env_var_get("PATH")
     // Step3: Download the script and place it in bin_dir
-    echo_info("Downloading 'fuckit.sh' to '{bin_dir}'...(via {url})")
+    let tpl_download = trust env_var_get("MSG_INSTALL_DOWNLOADING")
+    let msg_download = replace(replace(tpl_download, "\{bin_dir}", bin_dir), "\{url}", url)
+    echo_info(msg_download)
     if not file_download(url, bin_path):
-        echo_error("No Avaliable CLI Tools Found, Need curl, wget or aria2c.")
+        echo_error(trust env_var_get("MSG_ERR_NO_DOWNLOADER"))
     // Step4: Make it executable
     if not file_chmod(bin_path, "+x"):
-        echo_error("Failed to set executable permission on '{bin_path}'.")
+        let tpl = trust env_var_get("MSG_ERR_CHMOD_FAILED")
+        let msg = replace(tpl, "\{bin_path}", bin_path)
+        echo_error(msg)
     // Step5: Verify installation
     let installed_version = $ {bin_path} --version 2> /dev/null $ failed : let installed_version = ""
     if installed_version == "" {
@@ -50,20 +60,28 @@ pub fun install(home_dir: Text, name: Text, civil_name: Text, version: Text, url
         echo "  - Current Version: {current_version}"
         echo "  - Installed Version: {installed_version}"
         echo "  - PATH: {path_env}"
-        echo_error("Installation failed: Unable to verify installation. (It means executing '{bin_path} --version' did not return any output or just failed.) Please check the above information and try again.")
+        echo_error(trust env_var_get("MSG_ERR_INSTALL_FAILED"))
     } else :
-        echo_success("fuckit.sh version {installed_version} installed successfully at '{bin_path}'!")
+        let tpl = trust env_var_get("MSG_INSTALL_SUCCESS")
+        let msg = replace(replace(tpl, "\{installed_version}", installed_version), "\{bin_path}", bin_path)
+        echo_success(msg)
         // Step 6: Create a civilized alias
         let civil_path = bin_dir + "/" + civil_name
         if not file_exists(civil_path) {
-            echo_info("Creating a civilized alias '{civil_name}'...")
+            let tpl_alias = trust env_var_get("MSG_CIVIL_ALIAS_CREATING")
+            let msg_alias = replace(tpl_alias, "\{civil_name}", civil_name)
+            echo_info(msg_alias)
             $ ln -s "{bin_path}" "{civil_path}" $ failed {
-                echo_warning("Failed to create alias '{civil_name}'. You can create it manually by running: ln -s {bin_path} {civil_path}")
+                let tpl_alias_fail = trust env_var_get("MSG_CIVIL_ALIAS_FAILED")
+                let msg_alias_fail = replace(replace(replace(tpl_alias_fail, "\{civil_name}", civil_name), "\{bin_path}", bin_path), "\{civil_path}", civil_path)
+                echo_warning(msg_alias_fail)
             }
         }
     // Step7: Warn if bin_dir is not in PATH
     if path_env != "" and not array_contains(split(path_env, ":"), bin_dir) {
-        echo_warning("Warning: '{bin_dir}' is not in your PATH environment variable. You may need to add it manually to run 'fuckit.sh' easily.")
+        let tpl = trust env_var_get("MSG_WARN_NOT_IN_PATH")
+        let msg = replace(tpl, "\{bin_dir}", bin_dir)
+        echo_warning(msg)
         echo_info("You can add the following line to your shell profile (e.g., ~/.bashrc, ~/.zshrc):")
         echo_info("export PATH=$PATH:{bin_dir}")
     }
@@ -71,7 +89,7 @@ pub fun install(home_dir: Text, name: Text, civil_name: Text, version: Text, url
 
 pub fun uninstall(home_dir: Text, name: Text): Null {
     if home_dir == "" {
-        echo_error("Cannot determine home directory. Please ensure HOME environment variable is set.")
+        echo_error(trust env_var_get("MSG_ERR_NO_HOME"))
         exit 1
     }
 
@@ -80,45 +98,56 @@ pub fun uninstall(home_dir: Text, name: Text): Null {
     let config_dir = home_dir + "/.fuckit"
 
     if not file_exists(bin_path) {
-        echo_warning("fuckit.sh is not installed at '{bin_path}', nothing to do.")
+        let tpl = trust env_var_get("MSG_UNINSTALL_NOT_INSTALLED") // Need to add this key
+        let msg = replace(tpl, "\{bin_path}", bin_path)
+        echo_warning(msg)
         exit 0
     }
 
-    echo_info("Starting uninstallation process...")
+    echo_info(trust env_var_get("MSG_UNINSTALL_START"))
 
     // Find and remove all symbolic links (personas/aliases)
-    echo_info("Searching for aliases in '{bin_dir}'...")
+    let tpl_search = trust env_var_get("MSG_UNINSTALL_SEARCHING_ALIASES")
+    echo_info(replace(tpl_search, "\{bin_dir}", bin_dir))
     let aliases = trust $ find "{bin_dir}" -type l -lname "*/{name}" $
     if aliases != "" {
         for alias_path in lines(aliases) {
-            echo_info("  - Removing alias: {alias_path}")
+            let tpl = trust env_var_get("MSG_UNINSTALL_REMOVE_ALIAS")
+            echo_info(replace(tpl, "\{alias_path}", alias_path))
             $ rm "{alias_path}" $ failed {
-                echo_warning("    Could not remove alias '{alias_path}'. Please check permissions.")
+                let tpl_fail = trust env_var_get("MSG_UNINSTALL_ERR_REMOVE_ALIAS") // Need to add this key
+                echo_warning(replace(tpl_fail, "\{alias_path}", alias_path))
             }
         }
     } else {
-        echo_info("No aliases found.")
+        echo_info(trust env_var_get("MSG_UNINSTALL_NO_ALIASES"))
     }
 
     // Remove the main executable
-    echo_info("Removing main executable: {bin_path}")
+    let tpl_rm_exec = trust env_var_get("MSG_UNINSTALL_REMOVE_EXEC")
+    echo_info(replace(tpl_rm_exec, "\{bin_path}", bin_path))
     $ rm "{bin_path}" $ failed {
-        echo_error("Failed to remove '{bin_path}'. Please check permissions and try again.")
+        let tpl = trust env_var_get("MSG_UNINSTALL_ERR_REMOVE_EXEC") // Need to add this key
+        echo_error(replace(tpl, "\{bin_path}", bin_path))
         exit 1
     }
 
     // Ask to remove the configuration directory
     if dir_exists(config_dir) {
-        if input_confirm("Do you want to remove all configurations and data from '{config_dir}'?", false) {
-            echo_info("Removing configuration directory: {config_dir}")
+        let tpl = trust env_var_get("MSG_UNINSTALL_CONFIRM_RM_CONFIG")
+        if input_confirm(replace(tpl, "\{config_dir}", config_dir), false) {
+            let tpl_rm_dir = trust env_var_get("MSG_UNINSTALL_RM_CONFIG_DIR")
+            echo_info(replace(tpl_rm_dir, "\{config_dir}", config_dir))
             $ rm -r "{config_dir}" $ failed {
-                echo_error("Failed to remove '{config_dir}'. Please check permissions.")
+                let tpl_fail = trust env_var_get("MSG_UNINSTALL_ERR_RM_CONFIG") // Need to add this key
+                echo_error(replace(tpl_fail, "\{config_dir}", config_dir))
                 exit 1
             }
         } else {
-            echo_info("Configuration directory '{config_dir}' was not removed.")
+            let tpl_keep = trust env_var_get("MSG_UNINSTALL_KEEP_CONFIG_DIR")
+            echo_info(replace(tpl_keep, "\{config_dir}", config_dir))
         }
     }
 
-    echo_success("fuckit.sh has been successfully uninstalled.")
+    echo_success(trust env_var_get("MSG_UNINSTALL_SUCCESS"))
 }
