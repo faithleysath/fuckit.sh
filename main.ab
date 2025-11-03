@@ -1,6 +1,7 @@
 const VERSION = "0.1.0"
 const LANG = "en"
 const NAME = "fuck"
+const NAME_CIVIL = "ask"
 // const URL = "https://fuckit.sh"
 const URL = "http://host.docker.internal:5500/main.sh"
 
