@@ -16,11 +16,6 @@ pub fun start_chat_session(initial_prompt: [Text]): Null {
     let api_key = config[1]
     let model_name = config[2]
 
-    if model_name == "" {
-        echo_error("LLM model name is missing. Please set FUCKIT_MODEL_NAME environment variable or add it to your config file.")
-        exit 1
-    }
-
     // Step 2: Initialize histories and system prompt
     let user_history = [Text]
     let assistant_history = [Text]
