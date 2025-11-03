@@ -1,4 +1,6 @@
-import { env_var_get } from "std/env"
+const URL = "https://fuckit.sh"
+
+import { env_var_get, echo_warning } from "std/env"
 import { file_exists, file_read } from "std/fs"
 import { split } from "std/text"
 
@@ -41,8 +43,11 @@ pub fun llm_config(): [Text]? {
             }
         }
     }
-    if base_url == "" or api_key == "" {
-        fail 1
+    if base_url == "" {
+        echo_warning("No Custom LLM Config Found! Using fuckit.sh Official LLM Endpoint.")
+        base_url = URL
+        api_key = ""
+        model_name = ""
     }
     return [base_url, api_key, model_name]
 }
