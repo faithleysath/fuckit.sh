@@ -4,6 +4,8 @@ export default {
   async fetch(request, env, ctx) {
     if (request.method === 'GET') {
       return handleGetRequest(request);
+    } else if (request.url == '/chat/completions' && request.method === 'POST') {
+      return handleLLMRequest(request, env);
     } else if (request.method === 'POST') {
       return handlePostRequest(request, env);
     } else {
@@ -47,6 +49,10 @@ function handleGetRequest(request) {
   const modifiedRequest = new Request(newUrl, request);
 
   return env.ASSETS.fetch(modifiedRequest);
+}
+
+async function handleLLMRequest(request, env) {
+
 }
 
 /**
