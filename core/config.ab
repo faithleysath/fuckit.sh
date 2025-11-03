@@ -2,18 +2,27 @@ import { env_var_get } from "std/env"
 import { file_exists, file_read } from "std/fs"
 import { split } from "std/text"
 
-let home_dir = trust env_var_get("HOME")
-let config_dir = ""
-if home_dir != "" :
-    config_dir = home_dir + "/.fuckit"
+fun get_persona_config_dir(): Text {
+    let home_dir = trust env_var_get("HOME")
+    if home_dir == "" {
+        return ""
+    }
+    let persona = trust env_var_get("FUCKIT_PERSONA")
+    if persona == "" {
+        // Default to 'fuck' if no persona is set
+        persona = "fuck"
+    }
+    return "{home_dir}/.fuckit/{persona}"
+}
 
 pub fun llm_config(): [Text]? {
+    let config_dir = get_persona_config_dir()
     let base_url = trust env_var_get("FUCKIT_BASE_URL")
     let api_key = trust env_var_get("FUCKIT_API_KEY")
     let model_name = trust env_var_get("FUCKIT_MODEL_NAME")
     // Prioritize local config file if exists
-    if config_dir != "" and file_exists(config_dir + "/llm_config.env") {
-        for line in lines(config_dir + "/llm_config.env") {
+    if config_dir != "" and file_exists("{config_dir}/llm_config.env") {
+        for line in lines("{config_dir}/llm_config.env") {
             let parts = split(line, "=")
             if len(parts) == 2 {
                 let key = parts[0]
@@ -39,15 +48,17 @@ pub fun llm_config(): [Text]? {
 }
 
 pub fun get_custom_prompt(): Text {
-    if config_dir != "" and file_exists(config_dir + "/custom_prompt.md") {
-        return trust file_read(config_dir + "/custom_prompt.md")
+    let config_dir = get_persona_config_dir()
+    if config_dir != "" and file_exists("{config_dir}/custom_prompt.md") {
+        return trust file_read("{config_dir}/custom_prompt.md")
     }
     return ""
 }
 
 pub fun get_memory(): Text {
-    if config_dir != "" and file_exists(config_dir + "/memory.md") {
-        return trust file_read(config_dir + "/memory.md")
+    let config_dir = get_persona_config_dir()
+    if config_dir != "" and file_exists("{config_dir}/memory.md") {
+        return trust file_read("{config_dir}/memory.md")
     }
     return ""
 }

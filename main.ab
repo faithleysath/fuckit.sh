@@ -33,7 +33,7 @@ $ command -v curl > /dev/null 2>&1 $ failed {
     exit 1
 }
 
-import { env_var_get, echo_error, echo_warning, echo_info, echo_success } from "std/env"
+import { env_var_get, echo_error, echo_warning, echo_info, echo_success, env_var_set } from "std/env"
 import { starts_with, split, parse_number } from "std/text"
 import { array_contains } from "std/array"
 import { request_llm} from "./utils/llm.ab"
@@ -51,6 +51,9 @@ main (arguments) {
         echo_error("Oops, no arguments provided! It should not happen. But it did. Please visit https://fuckit.sh and report this issue.")
     // First argument is the script name
     let script_name = arguments[0]
+    // Set persona based on the script name, and export it for other modules to use.
+    let persona = trust $ basename "{script_name}" $
+    trust env_var_set("FUCKIT_PERSONA", persona)
     // Remaining arguments are passed to the script
     let script_args = arguments[1..len(arguments)]
 
