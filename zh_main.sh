@@ -135,20 +135,22 @@ _fuck_json_escape() {
     for ((i = 0; i < length; i++)); do
         char="${string:$i:1}"
         case "$char" in
-            # 转义JSON特殊字符
             '\\') encoded='\\\\' ;;
             '"') encoded='\\"' ;;
             $'\n') encoded='\\n' ;;
             $'\r') encoded='\\r' ;;
             $'\t') encoded='\\t' ;;
-            # 普通ASCII字符直接输出
-            [ -z "${char//[ -~]/}" ]) encoded="$char" ;;
-            # 中文字符和其他非ASCII字符 - 保持原样（依赖服务端正确解析）
-            *) encoded="$char" ;;
+            *) 
+                # 使用 if 判断是否为 ASCII 字符
+                if [[ "$char" =~ [[:print:]] ]]; then
+                    encoded="$char"
+                else
+                    encoded="$char"  # 非 ASCII 字符也保持原样
+                fi
+                ;;
         esac
-        result="${result}${encoded}"
-    done
-    
+            result="${result}${encoded}"
+        done
     printf '%s' "$result"
 }
 
@@ -198,9 +200,8 @@ _fuck_made_own_alias() {
     #允许用户定义自己的别名
     echo -e "${C_YELLOW}请输入您要定义的别名：${C_RESET}"
     read -r alias_name
-    echo "alias $alias_name=_fuck_execute_prompt" >> $HOME/.bashrc
-    echo -e "${C_GREEN}别名已成功添加！无需重启终端即可使用。${C_RESET}"
-    source $HOME/.bashrc
+    echo "alias $alias_name='_fuck_execute_prompt'" >> "$HOME/.bashrc"
+    echo -e "${C_GREEN}别名 '$alias_name' 已成功添加！请重启终端或执行 'source ~/.bashrc' 来使用。${C_RESET}"
 }
 
 # 跟 API 通信的主函数
