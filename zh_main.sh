@@ -173,6 +173,14 @@ _uninstall_script() {
     sleep 3
     echo -e "${C_YELLOW}寐游浮沐，若雉飞舞。${C_RESET}"
 }
+_fuck_made_own_alias() {
+    #允许用户定义自己的别名
+    echo -e "${C_YELLOW}请输入您要定义的别名：${C_RESET}"
+    read -r alias_name
+    echo "alias $alias_name=_fuck_execute_prompt" >> $HOME/.bashrc
+    echo -e "${C_GREEN}别名已成功添加！无需重启终端即可使用。${C_RESET}"
+    source $HOME/.bashrc
+}
 
 # 跟 API 通信的主函数
 # 参数就是要执行的命令
@@ -182,7 +190,10 @@ _fuck_execute_prompt() {
         _uninstall_script
         return 0
     fi
-
+    if [ "$1" = "madealias" ] && [ "$#" -eq 1 ]; then
+        _fuck_made_own_alias
+        return 0
+    fi
     if ! command -v curl &> /dev/null; then
         echo -e "$FUCK ${C_RED}'fuck' 命令需要 'curl'，请先安装 curl。${C_RESET}" >&2
         return 1
@@ -318,6 +329,15 @@ _install_script() {
         echo -e "\n${C_YELLOW}记得重启终端以使用新命令！${C_RESET}"
     else
         echo -e "$FUCK ${C_YELLOW}检测到已安装，已为您更新脚本。${C_RESET}"
+        echo -e "${C_YELLOW}请重启终端或执行 ${C_BOLD}source $profile_file${C_YELLOW} 以使更改生效。${C_RESET}"
+        echo -e "\n${C_BOLD}--- 使用方法 ---${C_RESET}"
+        echo -e "使用 ${C_RED_BOLD}fuck${C_RESET} 命令后跟您想执行的操作即可。"
+        echo -e "示例:"
+        echo -e "  ${C_CYAN}fuck install git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck 找出当前目录所有大于10MB的文件${C_RESET}"
+        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# 卸载 fuckit.sh${C_RESET}"
+        echo -e "\n${C_YELLOW}记得重启终端以使用新命令！${C_RESET}"
     fi
 }
 
