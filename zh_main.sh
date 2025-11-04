@@ -125,15 +125,36 @@ _fuck_collect_sysinfo_string() {
     echo "OS: $(uname -s), Arch: $(uname -m), Shell: ${SHELL:-unknown}, PkgMgr: $pkg_manager, CWD: $(pwd)"
 }
 
-# JSON 转义，免得出问题
+# 统一的编码函数 - 解决中文和特殊字符问题
 _fuck_json_escape() {
-    # 就转义那几个特殊字符
-    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g' -e 's/\t/\\t/g'
+    local string="$1"
+    local length=${#string}
+    local result=""
+    local i char encoded
+    
+    for ((i = 0; i < length; i++)); do
+        char="${string:$i:1}"
+        case "$char" in
+            # 转义JSON特殊字符
+            '\\') encoded='\\\\' ;;
+            '"') encoded='\\"' ;;
+            $'\n') encoded='\\n' ;;
+            $'\r') encoded='\\r' ;;
+            $'\t') encoded='\\t' ;;
+            # 普通ASCII字符直接输出
+            [ -z "${char//[ -~]/}" ]) encoded="$char" ;;
+            # 中文字符和其他非ASCII字符 - 保持原样（依赖服务端正确解析）
+            *) encoded="$char" ;;
+        esac
+        result="${result}${encoded}"
+    done
+    
+    printf '%s' "$result"
 }
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着？行，好吧，我走了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -256,6 +277,7 @@ _fuck_execute_prompt() {
 
 # 定义别名
 alias fuck='_fuck_execute_prompt'
+alias man-pro='_fuck_execute_prompt'
 
 # --- 核心逻辑结束 ---
 EOF
