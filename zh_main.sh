@@ -125,15 +125,38 @@ _fuck_collect_sysinfo_string() {
     echo "OS: $(uname -s), Arch: $(uname -m), Shell: ${SHELL:-unknown}, PkgMgr: $pkg_manager, CWD: $(pwd)"
 }
 
-# JSON 转义，免得出问题
+# 统一的编码函数 - 解决中文和特殊字符问题
 _fuck_json_escape() {
-    # 就转义那几个特殊字符
-    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g' -e 's/\r/\\r/g' -e 's/\t/\\t/g'
+    local string="$1"
+    local length=${#string}
+    local result=""
+    local i char encoded
+    
+    for ((i = 0; i < length; i++)); do
+        char="${string:$i:1}"
+        case "$char" in
+            '\\') encoded='\\\\' ;;
+            '"') encoded='\\"' ;;
+            $'\n') encoded='\\n' ;;
+            $'\r') encoded='\\r' ;;
+            $'\t') encoded='\\t' ;;
+            *) 
+                # 使用 if 判断是否为 ASCII 字符
+                if [[ "$char" =~ [[:print:]] ]]; then
+                    encoded="$char"
+                else
+                    encoded="$char"  # 非 ASCII 字符也保持原样
+                fi
+                ;;
+        esac
+            result="${result}${encoded}"
+        done
+    printf '%s' "$result"
 }
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着？行，好吧，我走了。${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -173,6 +196,13 @@ _uninstall_script() {
     sleep 3
     echo -e "${C_YELLOW}寐游浮沐，若雉飞舞。${C_RESET}"
 }
+_fuck_made_own_alias() {
+    #允许用户定义自己的别名
+    echo -e "${C_YELLOW}请输入您要定义的别名：${C_RESET}"
+    read -r alias_name
+    echo "alias $alias_name='_fuck_execute_prompt'" >> "$HOME/.bashrc"
+    echo -e "${C_GREEN}别名 '$alias_name' 已成功添加！请重启终端或执行 'source ~/.bashrc' 来使用。${C_RESET}"
+}
 
 # 跟 API 通信的主函数
 # 参数就是要执行的命令
@@ -182,7 +212,10 @@ _fuck_execute_prompt() {
         _uninstall_script
         return 0
     fi
-
+    if [ "$1" = "madealias" ] && [ "$#" -eq 1 ]; then
+        _fuck_made_own_alias
+        return 0
+    fi
     if ! command -v curl &> /dev/null; then
         echo -e "$FUCK ${C_RED}'fuck' 命令需要 'curl'，请先安装 curl。${C_RESET}" >&2
         return 1
@@ -245,6 +278,7 @@ _fuck_execute_prompt() {
 
 # 定义别名
 alias fuck='_fuck_execute_prompt'
+alias man-pro='_fuck_execute_prompt'
 
 # --- 核心逻辑结束 ---
 EOF
@@ -318,6 +352,15 @@ _install_script() {
         echo -e "\n${C_YELLOW}记得重启终端以使用新命令！${C_RESET}"
     else
         echo -e "$FUCK ${C_YELLOW}检测到已安装，已为您更新脚本。${C_RESET}"
+        echo -e "${C_YELLOW}请重启终端或执行 ${C_BOLD}source $profile_file${C_YELLOW} 以使更改生效。${C_RESET}"
+        echo -e "\n${C_BOLD}--- 使用方法 ---${C_RESET}"
+        echo -e "使用 ${C_RED_BOLD}fuck${C_RESET} 命令后跟您想执行的操作即可。"
+        echo -e "示例:"
+        echo -e "  ${C_CYAN}fuck install git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
+        echo -e "  ${C_CYAN}fuck 找出当前目录所有大于10MB的文件${C_RESET}"
+        echo -e "  ${C_RED_BOLD}fuck uninstall${C_RESET} ${C_GREEN}# 卸载 fuckit.sh${C_RESET}"
+        echo -e "\n${C_YELLOW}记得重启终端以使用新命令！${C_RESET}"
     fi
 }
 
