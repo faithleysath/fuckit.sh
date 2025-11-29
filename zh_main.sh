@@ -133,7 +133,7 @@ _fuck_json_escape() {
 
 # 卸载脚本
 _uninstall_script() {
-    echo -e "${C_RED_BOLD}好好好！${C_RESET}${C_YELLOW}怎么着，要卸磨杀驴啊？行啊你个老六，我真谢谢你了。${C_RESET}"
+    echo -e "${C_YELLOW}正在卸载 fuckit.sh...${C_RESET}"
 
     # 找配置文件
     local profile_file
@@ -173,7 +173,20 @@ _uninstall_script() {
     sleep 3
     echo -e "${C_YELLOW}寐游浮沐，若雉飞舞。${C_RESET}"
 }
-
+_fuck_madealias() {
+    echo -e "${C_YELLOW}你可以定义除了fuck之外自己的别名${C_RESET}"
+    echo -e "${C_YELLOW}请输入你的别名：${C_RESET}"
+    read -r alias
+    #允许用户使用自定义别名来调用fuckit.sh
+    local profile_file
+    profile_file=$(_installer_detect_profile)
+    if [ "$profile_file" != "unknown_profile" ] && [ -f "$profile_file" ]; then
+        echo "alias $alias='fuck'" >> "$profile_file"
+    else
+        echo -e "${C_YELLOW}找不到 shell 配置文件，您可以手动添加相关配置。${C_RESET}"
+    fi
+    
+}
 # 跟 API 通信的主函数
 # 参数就是要执行的命令
 _fuck_execute_prompt() {
@@ -182,7 +195,10 @@ _fuck_execute_prompt() {
         _uninstall_script
         return 0
     fi
-
+    if [ "$1" = "madealias" ] && [ "$#" -eq 1 ]; then
+        _fuck_madealias
+        return 0
+    fi
     if ! command -v curl &> /dev/null; then
         echo -e "$FUCK ${C_RED}'fuck' 命令需要 'curl'，请先安装 curl。${C_RESET}" >&2
         return 1
