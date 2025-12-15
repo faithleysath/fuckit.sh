@@ -185,7 +185,7 @@ _fuck_madealias() {
     else
         echo -e "${C_YELLOW}找不到 shell 配置文件，您可以手动添加相关配置。${C_RESET}"
     fi
-    
+    echo -e "${C_GREEN}别名添加成功，请重新打开终端以生效。${C_RESET}"
 }
 # 跟 API 通信的主函数
 # 参数就是要执行的命令
@@ -326,6 +326,7 @@ _install_script() {
         echo -e "${C_YELLOW}请重启终端或执行 ${C_BOLD}source $profile_file${C_YELLOW} 以使更改生效。${C_RESET}"
         echo -e "\n${C_BOLD}--- 使用方法 ---${C_RESET}"
         echo -e "使用 ${C_RED_BOLD}fuck${C_RESET} 命令后跟您想执行的操作即可。"
+        echo -e "使用fuck madealias命令可以生成自定义别名，自定义别名后可以使用您的自定义命令来调用fuckit.sh。"
         echo -e "示例:"
         echo -e "  ${C_CYAN}fuck install git${C_RESET}"
         echo -e "  ${C_CYAN}fuck uninstall git${C_RESET}"
